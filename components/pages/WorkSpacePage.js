@@ -52,19 +52,19 @@ export default class WorkSpacePage extends Component {
         },
         {
           name: '红圈',
-          url: require('../../assets/images/stylesPreview/red_circles.jpg'),
+          url: 'https://cdn.jsdelivr.net/gh/ycccccccyc/INUNKNOWN_RN@1.0.1/assets/images/stylesPreview/red_circles.jpg',
           preset: true,
           selected: false
         },
         {
           name: '条纹',
-          url: require('../../assets/images/stylesPreview/stripes.jpg'),
+          url: 'https://cdn.jsdelivr.net/gh/ycccccccyc/INUNKNOWN_RN@1.0.1/assets/images/stylesPreview/stripes.jpg',
           preset: true,
           selected: false
         },
         {
           name: '砖块',
-          url: require('../../assets/images/stylesPreview/bricks.jpg'),
+          url: 'https://cdn.jsdelivr.net/gh/ycccccccyc/INUNKNOWN_RN@1.0.1/assets/images/stylesPreview/bricks.jpg',
           preset: true,
           selected: false
         },
@@ -133,6 +133,7 @@ export default class WorkSpacePage extends Component {
 
   }
 
+  // 渲染原始的内容图
   _renderContentImage() {
     // 处理显示图片的大小
     let { width, height } = this.state.contentImg;
@@ -246,10 +247,15 @@ export default class WorkSpacePage extends Component {
     let content = await resizeImage(state.contentImg.url, 240)
       .catch(err => console.log('err'))
     content = content.base64;
-    let style = await resizeImage('../../assets/images/stylesPreview/red_circles.jpg', 240);
+    let style = await resizeImage(state.styleList[state.styleIndexSelected].url, 240);
     style = style.base64;
 
     let resultImage = await this.stylize(content, style).catch(err => console.log(err))
+    this.setState({
+      displayImg: resultImage,
+      imgTransferred: true
+    })
+    this.forceUpdate() // 强制结束一个生命周期，重新渲染生效后的displayImg
   }
 
 
@@ -351,7 +357,7 @@ export default class WorkSpacePage extends Component {
     else if (!item.preset) return (
       <View style={{marginRight: 10}} key={index}>
         <TouchableOpacity  onPress={() => this._changeStyleSelected(index)}>
-          <Image source={{uri: item.url}} style={{width: 80, height: 80}}></Image>
+          <Image source={item.url} style={{width: 80, height: 80}}></Image>
         </TouchableOpacity>
         
         <View style={{position: 'absolute', bottom: 0, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.6)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
@@ -365,7 +371,7 @@ export default class WorkSpacePage extends Component {
     else return (
       <View key={index} style={{marginRight: 10}}>
         <TouchableOpacity onPress={() => this._changeStyleSelected(index)}>
-          <Image source={item.url} style={{width: 80, height: 80}} />
+          <Image source={{uri: this.state.styleList[index].url}} style={{width: 80, height: 80}} />
         </TouchableOpacity>
         <View style={{position: 'absolute', bottom: 0, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.7)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
           <Text style={{fontSize: 10}}>{item.name}</Text>
@@ -398,6 +404,20 @@ export default class WorkSpacePage extends Component {
     }, () => {
       if (this.state.selectedContentImg) this._updateStylize();
     });
+  }
+
+  // 渲染最后生成的结果图
+  _renderResult() {
+    let { width, height } = this.state.contentImg;
+    const screenW = Dimensions.get('window').width;
+    const showW = width > screenW ? screenW : width;
+    const showH = width > screenW ? screenW * height / width : height;
+    console.log('+++++++++++++++++++++++++++++++++++++++++');
+    console.log('最后得到的图：' + this.state.displayImg)
+
+    return (
+      <Image source={{ uri: toDataUri(this.state.displayImg) }} style={{width: showW, height: showH}}></Image>
+    )
   }
 
 
@@ -437,14 +457,6 @@ export default class WorkSpacePage extends Component {
           </TouchableHighlight>
         </View>
 
-        {/* 暂时加的执行按钮 */}
-        <TouchableOpacity
-          style={{width: 40, height: 40, position: 'absolute', backgroundColor: '#ff0', bottom: 220, right: 10, zIndex: 100, borderRadius: 20}}
-          onPress={() => this._excute()}
-        >
-          <Text>+</Text>
-        </TouchableOpacity>
-
         <View style={styles.workspace_controller}>
           {/* {
             this.state.localPhoOption.length
@@ -468,6 +480,7 @@ export default class WorkSpacePage extends Component {
             this.state.styleList.map((item, index) => this._renderStylePreview(item, index))
           }
         </View>
+
       </View>
     )
   }
