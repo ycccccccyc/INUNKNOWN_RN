@@ -42,7 +42,7 @@ export class StyleTranfer {
   async warmup() {
     // Also warmup
     let input = tf.randomNormal([320, 240, 3]);
-    const res = this.stylize(input, input);
+    const res = await this.stylize(input, input);
     await res.data();
     tf.dispose([input, res]);
   }
@@ -81,10 +81,10 @@ export class StyleTranfer {
     });
   }
 
-  stylize(styleImage, contentImage) {
+  async stylize(styleImage, contentImage) {
     const start = Date.now();
     console.log(styleImage.shape, contentImage.shape);
-    const styleRepresentation = this.predictStyleParameters(styleImage);
+    const styleRepresentation = await this.predictStyleParameters(styleImage);
     const stylized = this.produceStylized(contentImage, styleRepresentation);
     tf.dispose([styleRepresentation]);
     const end = Date.now();

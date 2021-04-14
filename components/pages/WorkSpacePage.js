@@ -121,18 +121,6 @@ export default class WorkSpacePage extends Component {
     this.setState({ pressStatus: true });
   }
 
-  // 执行
-  _excute() {
-    console.log('执行');
-    console.log(this.state.isTfReady);
-    // this._startStyling().finally(() => {
-    //   console.log('完成');
-    // })
-  }
-  _startStyling() {
-
-  }
-
   // 渲染原始的内容图
   _renderContentImage() {
     // 处理显示图片的大小
@@ -147,7 +135,7 @@ export default class WorkSpacePage extends Component {
   }
 
   renderCat() {
-    console.log('添加图片列表为空')
+    return;
   }
 
   // 拍摄获得内容图
@@ -234,7 +222,7 @@ export default class WorkSpacePage extends Component {
       this.setState({
         imgTransferred: false
       })
-      this.state.selectedContentImg = true;
+      this.setState({selectedContentImg: true})
       if (this.state.styleIndexSelected > 0) this._updateStylize();
     })
   }
@@ -265,7 +253,7 @@ export default class WorkSpacePage extends Component {
     const styleTensor = await base64ImageToTensor(styleImage);
     console.log('-------------------------------')
     console.log(!!contentImage, !!styleImage)
-    const stylizedResult = this.styler.stylize(
+    const stylizedResult = await this.styler.stylize(
       styleTensor, contentTensor);
     const stylizedImage = await tensorToImageUrl(stylizedResult);
     tf.dispose([contentTensor, styleTensor, stylizedResult]);
@@ -420,6 +408,13 @@ export default class WorkSpacePage extends Component {
     )
   }
 
+  _renderDisplayImg() {
+    const {selectedContentImg, imgTransferred} = this.state;
+    if (selectedContentImg && imgTransferred) return this._renderResult()
+    else if (selectedContentImg) return this._renderContentImage()
+    else return this.renderCat()
+  }
+
 
   async componentDidMount() {
     // Wait for tf to be ready.
@@ -441,10 +436,6 @@ export default class WorkSpacePage extends Component {
     let { state } = this;
 
     return (
-      // <LinearGradient colors={['rgb(222,249,242)', 'rgb(168,227,233)', 'rgb(108,198,222)',]} style={{flex: 1}}>
-      //   <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      //   </View>
-      // </LinearGradient>
       <View style={[{flex: 1}, styles.page]}>
 
         {/* 添加原相片按钮 */}
@@ -458,16 +449,8 @@ export default class WorkSpacePage extends Component {
         </View>
 
         <View style={styles.workspace_controller}>
-          {/* {
-            this.state.localPhoOption.length
-            ? this.state.localPhoOption.map((item, index) => this._renderPicItem(item, index) )
-            : this.renderCat()
-          } */}
           {
-            state.selectedContentImg && state.imgTransferred
-            ? this._renderResult()
-            : state.selectedContentImg ? this._renderContentImage()
-            : this.renderCat()
+            this._renderDisplayImg()
           }
           {state.isLoading ? <View style={[styles.loadingIndicator]}>
             <ActivityIndicator size='large' color='#FF0266' />
