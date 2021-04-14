@@ -254,7 +254,7 @@ export default class WorkSpacePage extends Component {
     console.log('-------------------------------')
     console.log(!!contentImage, !!styleImage)
     const stylizedResult = await this.styler.stylize(
-      styleTensor, contentTensor);
+      styleTensor, contentTensor, 0.5);
     const stylizedImage = await tensorToImageUrl(stylizedResult);
     tf.dispose([contentTensor, styleTensor, stylizedResult]);
     return stylizedImage;
@@ -400,8 +400,6 @@ export default class WorkSpacePage extends Component {
     const screenW = Dimensions.get('window').width;
     const showW = width > screenW ? screenW : width;
     const showH = width > screenW ? screenW * height / width : height;
-    console.log('+++++++++++++++++++++++++++++++++++++++++');
-    console.log('最后得到的图：' + this.state.displayImg)
 
     return (
       <Image source={{ uri: toDataUri(this.state.displayImg) }} style={{width: showW, height: showH}}></Image>

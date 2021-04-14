@@ -53,7 +53,7 @@ export class StyleTranfer {
    *
    * @param style Style image to get 100D bottleneck features for
   */
-  predictStyleParameters(styleImage) {
+  async predictStyleParameters(styleImage) {
     return tf.tidy(() => {
       if (this.styleNet == null) {
         throw new Error('Stylenet not loaded');
@@ -70,7 +70,7 @@ export class StyleTranfer {
    * @param content Content image to stylize
    * @param bottleneck Bottleneck features for the style to use
    */
-  produceStylized(contentImage, bottleneck) {
+  async produceStylized(contentImage, bottleneck) {
     return tf.tidy(() => {
       if (this.transformNet == null) {
         throw new Error('Transformnet not loaded');
@@ -81,11 +81,32 @@ export class StyleTranfer {
     });
   }
 
-  async stylize(styleImage, contentImage) {
+  async stylize(styleImage, contentImage, styleRatio) {
     const start = Date.now();
     console.log(styleImage.shape, contentImage.shape);
-    const styleRepresentation = await this.predictStyleParameters(styleImage);
-    const stylized = this.produceStylized(contentImage, styleRepresentation);
+    let styleRepresentation = await this.predictStyleParameters(styleImage);
+
+    // 程度化处理
+    if (styleRatio && styleRatio !== 1.0) {
+      await tf.nextFrame();
+      const identityBottleneck = await tf.tidy(() => {
+        return this.styleNet.predict(contentImage.toFloat().div(tf.scalar(255)).expandDims());
+      })
+      const styleBottleneck = styleRepresentation;
+      styleRepresentation = await tf.tidy(() => {
+        const styleBottleneckScaled = styleBottleneck.mul(tf.scalar(styleRatio));
+        console.log(typeof(styleBottleneckScaled))
+        const identityBottleneckScaled = identityBottleneck.mul(tf.scalar(1.0-styleRatio));
+        console.log('addstrict函数的意义：')
+        console.log
+        return styleBottleneckScaled.add(identityBottleneckScaled)
+      })
+      styleBottleneck.dispose();
+      identityBottleneck.dispose();
+    }
+
+    await tf.nextFrame();
+    const stylized = await this.produceStylized(contentImage, styleRepresentation);
     tf.dispose([styleRepresentation]);
     const end = Date.now();
     console.log('stylization scheduled', end - start);
