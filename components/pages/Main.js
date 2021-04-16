@@ -32,7 +32,7 @@ function PageNavTabs() {
           let icon;
 
           switch (route.name) {
-            case '主页' :
+            case '社区' :
               icon = focused ? (
                 <Image
                   source={require('../../assets/icon/homepage_active.png')}
@@ -114,7 +114,7 @@ function PageNavTabs() {
         swipeEnabled: true,
         animationEnabled: true,
       }}>
-      <Tab.Screen name="主页" component={HomePage} />
+      <Tab.Screen name="社区" component={HomePage} />
       <Tab.Screen name="工作台" component={WorkSpacePage} />
       <Tab.Screen name="赞过" component={HistoryPage} />
       <Tab.Screen name="我" component={MyPage} />
@@ -132,7 +132,7 @@ function TxClass() {
           name="home"
           component={ NavTabs }
           options={{
-            headerTitle: '主页',
+            headerTitle: '社区',
             headerBackTitleVisible: 'true'
           }}
         />

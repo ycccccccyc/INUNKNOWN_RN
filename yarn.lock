@@ -7594,6 +7594,11 @@ react-native-screens@~2.15.0:
   resolved "https://registry.npm.taobao.org/react-native-screens/download/react-native-screens-2.15.2.tgz?cache=0&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Freact-native-screens%2Fdownload%2Freact-native-screens-2.15.2.tgz#a449700e895b462937211ec72ed6f09652758f06"
   integrity sha1-pElwDolbRik3IR7HLtbwllJ1jwY=
 
+react-native-splash-screen@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.npm.taobao.org/react-native-splash-screen/download/react-native-splash-screen-3.2.0.tgz#d47ec8557b1ba988ee3ea98d01463081b60fff45"
+  integrity sha1-1H7IVXsbqYjuPqmNAUYwgbYP/0U=
+
 react-native-unimodules@~0.12.0:
   version "0.12.0"
   resolved "https://registry.npm.taobao.org/react-native-unimodules/download/react-native-unimodules-0.12.0.tgz#f1c92eae92212ca44078c0991c78fa4d13fda0f8"

@@ -20,8 +20,7 @@ import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import {StyleTranfer} from './style_transfer';
 import {imageToBase64, base64ImageToTensor, tensorToImageUrl, resizeImage, toDataUri} from '../../scripts/image_utils';
-
-var ImagePicker = require('react-native-image-picker');
+import styleList from '../../constant/styleList'
 
 export default class WorkSpacePage extends Component {
   constructor(props) {
@@ -42,43 +41,8 @@ export default class WorkSpacePage extends Component {
         width: 0,
         height: 0
       },
-      // 预置的风格选项
-      styleList: [
-        {
-          name: '引用本地',
-          url: '',
-          preset: false,
-          selected: false
-        },
-        {
-          name: '红圈',
-          url: 'https://cdn.jsdelivr.net/gh/ycccccccyc/INUNKNOWN_RN@1.0.1/assets/images/stylesPreview/red_circles.jpg',
-          preset: true,
-          selected: false
-        },
-        {
-          name: '条纹',
-          url: 'https://cdn.jsdelivr.net/gh/ycccccccyc/INUNKNOWN_RN@1.0.1/assets/images/stylesPreview/stripes.jpg',
-          preset: true,
-          selected: false
-        },
-        {
-          name: '砖块',
-          url: 'https://cdn.jsdelivr.net/gh/ycccccccyc/INUNKNOWN_RN@1.0.1/assets/images/stylesPreview/bricks.jpg',
-          preset: true,
-          selected: false
-        },
-        // {
-        //   name: '莫奈',
-        //   url: '../../assets/images/stylesPreview/clouds.jpg',
-        //   preset: true
-        // },
-        // {
-        //   name: '海港',
-        //   url: '../../assets/images/stylesPreview/seaport.jpg',
-        //   preset: true
-        // }
-      ],
+      // 默认风格列表
+      styleList: styleList,
 
       styleIndexSelected: 0,                    // 选择的风格图的下标
       cameraType: Camera.Constants.Type.back,   // 相机类型(expo-camera需要用到)
@@ -87,19 +51,9 @@ export default class WorkSpacePage extends Component {
     };
 
     // 初始化工作
-    // 加载模型
-    // this._loadMobileNetStyleModel().then(model => {
-    //   this.setState({styleNet: model})
-    //   console.log('加载风格化模型成功')
-    // }).catch((err => console.log('=====' + err + '=====')))
-    // .finally(() => console.log(''));
-
-    // this._loadSeparableTransformerModel().then(model => {
-    //   this.setState({transformNet: model})
-    // }).finally(() => {console.log('加载迁移模型成功')})
 
     this.styler = new StyleTranfer();
-
+    this.ImagePicker = require('react-native-image-picker');
   }
 
 
@@ -168,7 +122,7 @@ export default class WorkSpacePage extends Component {
       }
     };
 
-    ImagePicker.launchCamera(options, async (res) => {
+    this.ImagePicker.launchCamera(options, async (res) => {
       if (res.didCancel) {
         console.log('取消拍照');
       }
@@ -291,7 +245,7 @@ export default class WorkSpacePage extends Component {
       }
     };
 
-    ImagePicker.launchImageLibrary(options, async (res) => {
+    this.ImagePicker.launchImageLibrary(options, async (res) => {
       if (res.didCancel) {
         console.log('取消拍照');
       }
