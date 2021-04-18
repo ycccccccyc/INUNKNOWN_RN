@@ -1,23 +1,60 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import Main from './components/pages/Main';
+import React, {Component} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  Dimensions,
+  TouchableOpacity,
+  SafeAreaView,
+  TouchableHighlight,
+  Alert,
+  ScrollView,
+  ActivityIndicator,
+  Button
+} from 'react-native';
+import { Asset } from 'expo-asset';
+import AppLoading from 'expo-app-loading';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator, HeaderBackButton } from '@react-navigation/stack';
 
-export default function App() {
+import HomePage from './pages/HomePage';
+import WorkSpace from './pages/WorkSpace'
+
+const RootStack = createStackNavigator();
+
+
+function MainStackNav() {
   return (
-    <View style={styles.container}>
-      {/* <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" /> */}
-      <Main styles={styles.page} />
+    <View style={{width: '100%', height: '100%'}}>
+      <RootStack.Navigator
+        initialRouteName='HomePage'
+        screenOptions={{ gestureEnabled: false, headerShown: false }}
+        mode="card"
+      >
+        <RootStack.Screen name="HomePage" component={HomePage} />
+        <RootStack.Screen name="WorkSpace" component={WorkSpace} />
+      </RootStack.Navigator>
+      {
+        // <View style={{ width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.65)'}}></View>
+      }
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default class NavManager extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isReady: false,
+    };
+  }
+
+  render() {
+    return (
+      <NavigationContainer>
+        <MainStackNav />
+      </NavigationContainer>
+    );
+  }
+}

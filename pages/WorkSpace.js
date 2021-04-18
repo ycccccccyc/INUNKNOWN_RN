@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, useRef, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,7 +10,8 @@ import {
   TouchableHighlight,
   Alert,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
+  Animated
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -20,8 +21,60 @@ import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import {StyleTranfer} from '../scripts/style_transfer';
 import {imageToBase64, base64ImageToTensor, tensorToImageUrl, resizeImage, toDataUri} from '../scripts/image_utils';
+
+
+import SingleTransferController from '../components/WorkSpace/SingleTransferController';
 import styleList from '../constant/styleList'
 
+
+class FadeView extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      fadeAnim: new Animated.Value(0)
+    };
+
+    this._translateX = this.state.fadeAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [-27, 27] // 两个位置下，线条距离左边框的长度
+    });
+  }
+
+  animateToMode1() {
+    Animated.timing(
+      this.state.fadeAnim,
+      {
+        toValue: 0,
+        duration: 200,
+      }
+    ).start();
+  }
+
+  animateToMode2() {
+    Animated.timing(
+      this.state.fadeAnim,
+      {
+        toValue: 1,
+        duration: 200,
+      }
+    ).start();
+  }
+
+  render() {
+    return (
+      <Animated.View style={[
+        styles.modeNaviHandler,
+        {
+          transform: [
+            { translateX: 0 },
+            { translateX: this._translateX },  
+            { translateX: 0 }
+          ]
+        }
+      ]} />
+    );
+  }
+}
 
 export default class WorkSpacePage extends Component {
   constructor(props) {
@@ -48,13 +101,15 @@ export default class WorkSpacePage extends Component {
       styleIndexSelected: 0,                    // 选择的风格图的下标
       cameraType: Camera.Constants.Type.back,   // 相机类型(expo-camera需要用到)
       isLoading: true,                          // 逻辑处理的标志,最初表示模型等的加载
-      imgTransferred: false                     // 图像已经被成功转换
+      imgTransferred: false,                     // 图像已经被成功转换
+
     };
 
     // 初始化工作
 
     this.styler = new StyleTranfer();
     this.ImagePicker = require('react-native-image-picker');
+
   }
 
 
@@ -303,7 +358,7 @@ export default class WorkSpacePage extends Component {
           <Image source={item.url} style={{width: 80, height: 80}}></Image>
         </TouchableOpacity>
         
-        <View style={{position: 'absolute', bottom: 0, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.6)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
+        <View style={{position: 'absolute', bottom: 20, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.6)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
           <Text style={{fontSize: 10}}>自定义风格</Text>
         </View>
         {
@@ -312,11 +367,11 @@ export default class WorkSpacePage extends Component {
       </View>
     );
     else return (
-      <View key={index} style={{marginRight: 10}}>
+      <View key={index} style={{marginRight: 10, position: 'relative'}}>
         <TouchableOpacity onPress={() => this._changeStyleSelected(index)}>
           <Image source={{uri: this.state.styleList[index].url}} style={{width: 80, height: 80}} />
         </TouchableOpacity>
-        <View style={{position: 'absolute', bottom: 0, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.7)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
+        <View style={{position: 'absolute', bottom: 20, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.7)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
           <Text style={{fontSize: 10}}>{item.name}</Text>
         </View>
         {
@@ -400,19 +455,57 @@ export default class WorkSpacePage extends Component {
           </TouchableHighlight>
         </View>
 
-        {/* 添加原相片按钮 */}
-        <View style={styles.addContentImg}>
+        {/* 模式选择：假导航 */}
+        <View style={styles.modeNavi}>
+          <Text
+            style={styles.modeNaviText}
+            onPress={() => this.refs.fadeView.animateToMode1()}>滤镜</Text>
+          <Text
+            style={styles.modeNaviText}
+            onPress={() => this.refs.fadeView.animateToMode2()}>融合</Text>
+          <FadeView style={{width: 250, height: 50, backgroundColor: 'powderblue'}} ref="fadeView">
+            <Text style={{fontSize: 28, textAlign: 'center', margin: 10}}>Fading in</Text>
+          </FadeView>
+        </View>
+
+        {/* 从相机添加原相片按钮 */}
+        <View style={styles.addContentImgFromCamera}>
           <TouchableHighlight 
-            style={{width: 30, height: 30, marginRight: 10, backgroundColor: '#f00', borderRadius: 15, left: 10, top: 10, zIndex: 1000}}
+            style={styles.icon_contentFromCamera}
             onPress={() => this._selectContentImgByCam()}>
-            <Text>+</Text>
+            <Image source={require('../assets/icon/icon_camera.png')} style={{width: 25, height: 25}}></Image>
+          </TouchableHighlight>
+        </View>
+        {/* 从相册导入原相片按钮 */}
+        <View style={styles.addContentImgFromAlbum}>
+          <TouchableHighlight
+            style={styles.icon_contentFromAlbum}>
+            <Image source={require('../assets/icon/icon_album.png')} style={{width: 25, height: 25}}></Image>
           </TouchableHighlight>
         </View>
 
+        {/* 主工作台 */}
         <View style={styles.workspace_controller}>
           {
             this._renderDisplayImg()
           }
+
+
+          {/* 测试 */}
+          <View style={{width: '100%', height: 400, backgroundColor: '#f0f'}}>
+            <ScrollView
+              horizontal={true}
+              // alwaysBounceHorizontal={true}
+              pagingEnabled={true}
+              style={{width: '100%'}}>
+              <View style={{width: 400, height: 200, position: 'relative', backgroundColor: '#0f0'}}></View>
+              <View style={{width: 400, height: 400, backgroundColor: '#f00'}}></View>
+            </ScrollView>
+          </View>
+
+
+          
+          {/* loading动画 */}
           {state.isLoading ? <View style={[styles.loadingIndicator]}>
             <ActivityIndicator size='large' color='#FF0266' />
           </View> : null}
@@ -420,10 +513,13 @@ export default class WorkSpacePage extends Component {
 
         {/* 预置风格栏 */}
         <View style={styles.presetStyles}>
-          {
-            this.state.styleList.map((item, index) => this._renderStylePreview(item, index))
-          }
+          <ScrollView horizontal={true}>
+            {
+              this.state.styleList.map((item, index) => this._renderStylePreview(item, index))
+            }
+          </ScrollView>
         </View>
+
 
       </View>
     )
@@ -437,16 +533,68 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: '100%',
   },
-  addContentImg: {
+  addContentImgFromCamera: {
     position: 'absolute',
-    left: 0,
-    top: 100,
+    right: 80,
+    top: 10,
+  },
+  addContentImgFromAlbum: {
+    position: 'absolute',
+    right: 30,
+    top: 10,
+  },
+  icon_contentFromCamera: {
+    width: 40,
+    height: 40,
+    marginRight: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 25,
+    zIndex: 100,
+    display: 'flex',
+    justifyContent:'center',
+    alignItems: 'center',
+  },
+  icon_contentFromAlbum: {
+    width: 40,
+    height: 40,
+    marginRight: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 25,
+    zIndex: 100,
+    display: 'flex',
+    justifyContent:'center',
+    alignItems: 'center',
+  },
+  modeNavi: {
+    position: 'absolute',
+    zIndex: 100,
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    paddingBottom: 7,
+  },
+  modeNaviText: {
+    color: '#fff',
+    marginLeft: 10,
+    marginRight: 10,
+    marginTop: 13,
+    fontSize: 17,
+  },
+  modeNaviHandler: {
+    width: 40,
+    height: 3,
+    position: 'absolute',
+    backgroundColor: '#fff',
+    bottom: 0,
+    // left: 134,
+    borderRadius: 2,
   },
   controller: {
     height: 70,
     width: '100%',
     display: 'flex',
-    // justifyContent: 'space-around',
     alignItems: 'center',
     flexDirection: 'row',
     backgroundColor: '#ddd',
@@ -457,7 +605,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 25,
-    zIndex: 100,
+    zIndex: 999,
     display: 'flex',
     justifyContent:'center',
     alignItems: 'center',
@@ -500,7 +648,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 10,
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
+    padding: 20,
+    // alignItems: 'center',
     paddingLeft: 20,
     paddingRight: 20,
   },

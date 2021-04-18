@@ -8,9 +8,22 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "icon": "./assets/icon/workspace_inactive.png",
     "splash": {
       "image": "./assets/images/splash.jpg",
-      "resizeMode": "cover"
+      "resizeMode": "cover",
+      "backgroundColor": "#FEF9B0"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon/workspace_inactive.png",
+        "backgroundColor": "#FEF9B0"
+      },
+      "splash": {
+        "image": "./assets/images/splash.jpg",
+        "resizeMode": "cover",
+        "backgroundColor": "#FEF9B0"
+      }
     }
   }
 }

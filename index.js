@@ -1,6 +1,6 @@
 import { registerRootComponent } from 'expo';
 
-import App from './pages/NavManager';
+import App from './App';
 // import App from './components/base/Modal';
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);

@@ -16,7 +16,7 @@ import FavoritePage from './FavoritePage';
 import MyPage from './MyPage';
 import WorkSpace from './WorkSpace';
 
-import ChooseContentInModel from '../components/Modal/ChooseContentInModel';
+import ModalView from '../components/base/ModalView';
 
 
 const Tab = createBottomTabNavigator();
@@ -82,7 +82,7 @@ const tabIconConfig = ({ route }) => ({
         break;
       default:
         icon = (<Image
-          sorce={require('../assets/icon/workspace_red.png')}
+          sorce={require('../assets/icon/me_inactive.png')}
           style={{width: 25, height: 25}}/>)
     }
     return icon;
