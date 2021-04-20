@@ -28,11 +28,16 @@ import {imageToBase64, base64ImageToTensor, tensorToImageUrl, resizeImage, toDat
 import ChooseContentInModel from '../components/Modal/ChooseContentInModel';
 
 import SingleTransferController from '../components/WorkSpace/SingleTransferController';
+import MultiTransferController from '../components/WorkSpace/MultiTransferController';
+
 import styleList from '../constant/styleList'
 
 
+const screenHeight = Dimensions.get('window').height;
+const screenWidth = Dimensions.get('window').width;
 
-class FadeView extends React.Component {
+
+class ModeNaviHandler extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -51,6 +56,7 @@ class FadeView extends React.Component {
       {
         toValue: 0,
         duration: 200,
+        useNativeDriver: false
       }
     ).start();
   }
@@ -61,6 +67,7 @@ class FadeView extends React.Component {
       {
         toValue: 1,
         duration: 200,
+        useNativeDriver: false
       }
     ).start();
   }
@@ -86,10 +93,15 @@ export default class WorkSpacePage extends Component {
     super(props);
     this.state = {
       isTfReady: false,
-      pressStatus: false,
       selectedContentImg: false,
+      selectedContentImgMulti: false,
       // 内容图
       contentImg: {
+        url: '',
+        width: 0,
+        height: 0
+      },
+      contentImgMulti: {
         url: '',
         width: 0,
         height: 0
@@ -100,13 +112,20 @@ export default class WorkSpacePage extends Component {
         width: 0,
         height: 0
       },
+      displayImgMutil: {
+        url: '',
+        width: 0,
+        height: 0
+      },
       // 默认风格列表
       styleList: styleList,
 
       styleIndexSelected: 0,                    // 选择的风格图的下标
+      styleIndexSelectedMuti: [],
       cameraType: Camera.Constants.Type.back,   // 相机类型(expo-camera需要用到)
       isLoading: true,                          // 逻辑处理的标志,最初表示模型等的加载
       imgTransferred: false,                     // 图像已经被成功转换
+      imgTransferredMulti: false,
 
       transferMode: 0,                          // 风格化模式：一对一-多对一
 
@@ -116,54 +135,7 @@ export default class WorkSpacePage extends Component {
     // 初始化工作
     this.styler = new StyleTranfer();
     this.ImagePicker = require('react-native-image-picker');
-
-    this.modeNaviRef = React.createRef();
-    this.modeContainerRef = React.createRef();
-    this.chooseContentInModelRef = React.createRef();
-
-  }
-
-
-
-  //加载风格化模型
-  // async _loadMobileNetStyleModel() {
-  //   if (!this.mobileStyleNet) {
-  //     this.mobileStyleNet = await tf.loadGraphModel(
-  //       '../assets/models/saved_model_style_js/model.json');
-  //   }
-  //   return this.mobileStyleNet;
-  // }
-
-  _onHideUnderlay() {
-    this.setState({ pressStatus: false });
-  }
-
-  _onShowUnderlay() {
-    this.setState({ pressStatus: true });
-  }
-
-  // 渲染原始的内容图
-  _renderContentImage() {
-    // 处理显示图片的大小
-    let { width, height } = this.state.contentImg;
-    const screenW = Dimensions.get('window').width;
-    const showW = width > screenW ? screenW : width;
-    const showH = width > screenW ? screenW * height / width : height;
-
-    return (
-      <Image source={{ uri: this.state.contentImg.url }} style={{width: showW, height: showH}}></Image>
-    )
-  }
-
-  renderCat() {
-    return;
-  }
-
-  // 拍摄获得内容图
-  _selectContentImgByCam() {
-    console.log('选择原相片');
-
-    const options = {
+    this.uploadOptions = {
       title: '选择图片',
       cancelButtonTitle: '取消',
       takePhotoButtonTitle: '拍照',
@@ -189,7 +161,40 @@ export default class WorkSpacePage extends Component {
       }
     };
 
-    this.ImagePicker.launchCamera(options, async (res) => {
+    this.modeNaviRef = React.createRef();
+    this.modeContainerRef = React.createRef();
+    this.chooseContentInModelRef = React.createRef();
+    this.mode1ControllerRef = React.createRef();
+    this.mode2ControllerRef = React.createRef();
+
+  }
+
+  // 渲染原始的内容图
+  _renderContentImage() {
+    // 处理显示图片的大小
+    let { width, height } = this.state.contentImg;
+    const screenW = Dimensions.get('window').width;
+    const showW = width > screenW ? screenW : width;
+    const showH = width > screenW ? screenW * height / width : height;
+
+    return (
+      <Image source={{ uri: this.state.contentImg.url }} style={{width: showW, height: showH}}></Image>
+    )
+  }
+  _renderContentImageMulti() {
+    let { width, height } = this.state.contentImgMulti;
+    const screenW = Dimensions.get('window').width;
+    const showW = width > screenW ? screenW : width;
+    const showH = width > screenW ? screenW * height / width : height;
+
+    return (
+      <Image source={{ uri: this.state.contentImgMulti.url }} style={{width: showW, height: showH}}></Image>
+    )
+  }
+
+  // 拍摄获得内容图
+  _selectContentImgByCam() {
+    this.ImagePicker.launchCamera(this.uploadOptions, async (res) => {
       if (res.didCancel) {
         console.log('取消拍照');
       }
@@ -247,38 +252,70 @@ export default class WorkSpacePage extends Component {
       if (this.state.styleIndexSelected > 0) this._updateStylize();
     })
   }
+  _selectContentImgByCamMulti() {
+    this.ImagePicker.launchCamera(this.uploadOptions, async (res) => {
+      if (res.didCancel) {
+        console.log('取消拍照');
+      }
+      else if (res.error) {
+        // 用户选择不授权时，提醒以下信息
+        console.log('ImagePicker Error: ', res.error);
+        if(res.error.indexOf('Camera permissions not granted') > -1){
+          Alert.alert(('提示信息', 'APP需要使用相机，请打开相机权限允许APP使用'), [{
+            text: '设置',
+            onPress: () => {
+              Linking.openURL('app-settings:')
+                .catch(err => console.log('error', err))
+            }
+          },{
+            text: '取消'
+          }])
+        }
+        if(res.error.indexOf('Photo library permissions not granted') > -1){
+          Alert.alert('提示信息', 'APP需要使用相册，请打开相册权限允许APP使用', [{
+            text: '设置',
+            onPress: () => {
+              Linking.openURL('app-settings:')
+                .catch(err => console.log('error', err))
+            }
+          },{
+            text: '取消'
+          }]);
+        }
+      }
+      else if (res.customButton) {
+        console.log('User tapped custom button: ', res.customButton);
+      } else {
+        let source;  //保存选中的图片
+        if (Platform.OS === 'android') {
+          source = res.uri;
+        } else {
+          source = res.uri.replace('file://','');
+        }
+        let { contentImgMulti } = this.state;
+        contentImgMulti = {
+          url: source,
+          width: res.width,
+          height: res.height
+        };
+        this.setState({
+          contentImgMulti
+        })
+      }
+      console.log('从“拍摄”获得内容图');
+      this.setState({
+        imgTransferredMulti: false
+      })
+      this.setState({selectedContentImgMulti: true})
+      if (this.state.styleIndexSelectedMuti.length > 0) this._updateStylizeMulti();
+    })
+  }
+
+
   // 从相册上传内容图
   _selectContentImgByAlbum() {
     console.log('选择内容图');
-    let { props } = this;
-    let that = this;
-    const options = {
-      title: '选择图片',
-      cancelButtonTitle: '取消',
-      takePhotoButtonTitle: '拍照',
-      chooseFromLibraryButtonTitle: '相册',
-      cameraType: 'back',
-      mediaType: 'photo',
-      videoQuality: 'high',
-      durationLimit: 10,
-      maxWidth: 720,
-      maxHeight: 1280,
-      aspectX: 2,
-      aspectY: 1,
-      quality: 1,
-      angle: 0,
-      allowsEditing: false,
-      noData: false,
-      customButtons: [
-        {name:  'hangge' , title:  'hangge.com图片' },
-      ],
-      storageOptions: {
-        skipBackup: true,
-        path: 'images' // 存储本地地址
-      }
-    };
-
-    this.ImagePicker.launchImageLibrary(options, async (res) => {
+    this.ImagePicker.launchImageLibrary(this.uploadOptions, async (res) => {
       if (res.didCancel) {
         console.log('取消拍照');
       }
@@ -323,6 +360,53 @@ export default class WorkSpacePage extends Component {
       if (this.state.styleIndexSelected > 0) this._updateStylize();
     })
   }
+  _selectContentImgByAlbumMulti() {
+    console.log('选择内容图');
+    this.ImagePicker.launchImageLibrary(this.uploadOptions, async (res) => {
+      if (res.didCancel) {
+        console.log('取消拍照');
+      }
+      else if (res.error) {
+        // 用户选择不授权时，提醒以下信息
+        console.log('ImagePicker Error: ', res.error);
+        Alert.alert('提示信息', 'APP需要使用相册，请打开相册权限允许APP使用', [{
+          text: '设置',
+          onPress: () => {
+            Linking.openURL('app-settings:')
+              .catch(err => console.log('error', err))
+          }
+        },{
+          text: '取消'
+        }]);
+      }
+      else if (res.customButton) {
+        console.log('User tapped custom button: ', res.customButton);
+      } else {
+        // 用户授权并选择照片/拍照后，调用接口
+        let source;  //保存选中的图片
+        if (Platform.OS === 'android') {
+          source = res.uri;
+        } else {
+          source = res.uri.replace('file://','');
+        }
+        let { contentImgMulti } = this.state;
+        contentImgMulti = {
+          url: source,
+          width: res.width,
+          height: res.height
+        };
+        this.setState({
+          contentImgMulti
+        })
+      }
+      console.log('从“相册”获得内容图');
+      this.setState({
+        imgTransferredMulti: false
+      })
+      this.setState({selectedContentImgMulti: true})
+      if (this.state.styleIndexSelected > 0) this._updateStylizeMulti();
+    })
+  }
 
 
   // 更新图片
@@ -330,10 +414,10 @@ export default class WorkSpacePage extends Component {
     let {state} = this;
     if (state.isLoading) return;
     // 风格化
-    let content = await resizeImage(state.contentImg.url, 240)
+    let content = await resizeImage(state.contentImg.url, 400)
       .catch(err => console.log('err'))
     content = content.base64;
-    let style = await resizeImage(state.styleList[state.styleIndexSelected].url, 240);
+    let style = await resizeImage(state.styleList[state.styleIndexSelected].url, 400);
     style = style.base64;
 
     let resultImage = await this.stylize(content, style, ratio).catch(err => console.log(err))
@@ -342,6 +426,9 @@ export default class WorkSpacePage extends Component {
       imgTransferred: true
     })
     this.forceUpdate() // 强制结束一个生命周期，重新渲染生效后的displayImg
+  }
+  async _updateStylizeMulti() {
+
   }
 
 
@@ -357,39 +444,14 @@ export default class WorkSpacePage extends Component {
     tf.dispose([contentTensor, styleTensor, stylizedResult]);
     return stylizedImage;
   }
+  async stylizeMulti() {
 
-  // 上传风格图
+  }
+
+  // 从相册上传风格图
   _selectStyleImg() {
     console.log('选择风格图');
-    let { props } = this;
-    let that = this;
-    const options = {
-      title: '选择图片',
-      cancelButtonTitle: '取消',
-      takePhotoButtonTitle: '拍照',
-      chooseFromLibraryButtonTitle: '相册',
-      cameraType: 'back',
-      mediaType: 'photo',
-      videoQuality: 'high',
-      durationLimit: 10,
-      maxWidth: 720,
-      maxHeight: 1280,
-      aspectX: 2,
-      aspectY: 1,
-      quality: 1,
-      angle: 0,
-      allowsEditing: false,
-      noData: false,
-      customButtons: [
-        {name:  'hangge' , title:  'hangge.com图片' },
-      ],
-      storageOptions: {
-        skipBackup: true,
-        path: 'images' // 存储本地地址
-      }
-    };
-
-    this.ImagePicker.launchImageLibrary(options, async (res) => {
+    this.ImagePicker.launchImageLibrary(this.uploadOptions, async (res) => {
       if (res.didCancel) {
         console.log('取消拍照');
       }
@@ -430,7 +492,9 @@ export default class WorkSpacePage extends Component {
     })
   }
 
+
   // 渲染风格图预览
+  // 两种模式不太一样
   _renderStylePreview(item, index) {
     // 首个：总是为添加
     if (index === 0 && item.url.length === 0) return (
@@ -443,7 +507,7 @@ export default class WorkSpacePage extends Component {
     else if (!item.preset) return (
       <View style={{marginRight: 10}} key={index}>
         <TouchableOpacity  onPress={() => this._changeStyleSelected(index)}>
-          <Image source={item.url} style={{width: 80, height: 80}}></Image>
+          <Image source={{ uri: item.url }} style={{width: 80, height: 80}}></Image>
         </TouchableOpacity>
         
         <View style={{position: 'absolute', bottom: 10, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.6)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
@@ -491,6 +555,46 @@ export default class WorkSpacePage extends Component {
       if (this.state.selectedContentImg) this._updateStylize();
     });
   }
+  ///////////////////////////////////
+  _renderStylePreviewMulti(item, index) {
+    // 首个：总是为添加
+    if (index === 0 && item.url.length === 0) return (
+      <TouchableOpacity key={index}
+        style={{marginRight: 10, backgroundColor: '#eee', width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center'}}
+        onPress={() => this._selectStyleImg()}>
+        <Image source={require('../assets/images/stylesPreview/no_picture.png')} style={{width: 40, height: 40}}></Image>
+      </TouchableOpacity>
+    )
+    else if (!item.preset) return (
+      <View style={{marginRight: 10}} key={index}>
+        <TouchableOpacity  onPress={() => this._changeStyleSelected(index)}>
+          <Image source={{ uri: item.url }} style={{width: 80, height: 80}}></Image>
+        </TouchableOpacity>
+        
+        <View style={{position: 'absolute', bottom: 10, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.6)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
+          <Text style={{fontSize: 10}}>自定义风格</Text>
+        </View>
+        {
+          item.selected ? this._renderStyleSelectedFlag() : null
+        }
+      </View>
+    );
+    else return (
+      <View key={index} style={{marginRight: 10, position: 'relative'}}>
+        <TouchableOpacity onPress={() => this._changeStyleSelected(index)}>
+          <Image source={{uri: this.state.styleList[index].url}} style={{width: 80, height: 80}} />
+        </TouchableOpacity>
+        <View style={{position: 'absolute', bottom: 10, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.7)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
+          <Text style={{fontSize: 10}}>{item.name}</Text>
+        </View>
+        {
+          item.selected ? this._renderStyleSelectedFlag() : null
+        }
+      </View>
+    )
+  }
+
+
 
   // 渲染最后生成的结果图
   _renderResult() {
@@ -503,13 +607,50 @@ export default class WorkSpacePage extends Component {
       <Image source={{ uri: toDataUri(this.state.displayImg) }} style={{width: showW, height: showH}}></Image>
     )
   }
+  _renderResultMulti() {
+    let { width, height } = this.state.contentImgMulti;
+    const screenW = Dimensions.get('window').width;
+    const showW = width > screenW ? screenW : width;
+    const showH = width > screenW ? screenW * height / width : height;
+
+    return (
+      <Image source={{ uri: toDataUri(this.state.displayImgMutil) }} style={{width: showW, height: showH}}></Image>
+    )
+  }
+
+
 
   _renderDisplayImg() {
     const {selectedContentImg, imgTransferred} = this.state;
     if (selectedContentImg && imgTransferred) return this._renderResult()
     else if (selectedContentImg) return this._renderContentImage()
-    else return this.renderCat()
+    else return (
+      <TouchableOpacity
+        style={{backgroundColor: 'rgba(255, 255, 255, 0.04)', width: 260, left: Dimensions.get('window').width /2 - 130, borderRadius: 20, borderWidth: 2, borderColor:'rgba(255, 255, 255, 0.1)'}}
+        onPress={() => {this.chooseContentInModelRef.current.show()}}>
+        <View style={{height: 220, display: 'flex', alignItems: 'center', jusitfyContent: 'center'}}>
+          <Image source={require('../assets/icon/icon_empty.png')} style={{width: 80, height: 80, opacity: 0.3, top: 50}}></Image>
+          <Text style={{fontSize: 12, color: 'rgba(255, 255, 255, 0.4)', top: 80}}>还没有添加原相片！添加原相片→</Text>
+        </View>
+      </TouchableOpacity>
+    )
   }
+  _renderDisplayImgMulti() {
+    const {selectedContentImgMulti, imgTransferredMulti} = this.state;
+    if (selectedContentImgMulti && imgTransferredMulti) return this._renderResultMulti()
+    else if (selectedContentImgMulti) return this._renderContentImageMulti()
+    else return (
+      <TouchableOpacity
+        style={{backgroundColor: 'rgba(255, 255, 255, 0.04)', width: 260, left: Dimensions.get('window').width /2 - 130, borderRadius: 20, borderWidth: 2, borderColor:'rgba(255, 255, 255, 0.1)'}}
+        onPress={() => {this.chooseContentInModelRef.current.show()}}>
+        <View style={{height: 220, display: 'flex', alignItems: 'center', jusitfyContent: 'center'}}>
+          <Image source={require('../assets/icon/icon_empty.png')} style={{width: 80, height: 80, opacity: 0.3, top: 50}}></Image>
+          <Text style={{fontSize: 12, color: 'rgba(255, 255, 255, 0.4)', top: 80}}>还没有添加原相片！添加原相片→</Text>
+        </View>
+      </TouchableOpacity>
+    )
+  }
+
 
   //模式 翻页
   _modePageScrollEnd(that, e) {
@@ -518,8 +659,16 @@ export default class WorkSpacePage extends Component {
     var offSetX = e.nativeEvent.contentOffset.x;
     // 计算当前页码
     var currentPage = offSetX / width;
-    if (currentPage === 1) that.modeNaviRef.current.animateToMode2()
-    else that.modeNaviRef.current.animateToMode1()
+    if (currentPage === 1) {
+      that.modeNaviRef.current.animateToMode2()
+      that.mode1ControllerRef.current.hide()
+      that.mode2ControllerRef.current.show()
+    }
+    else {
+      that.modeNaviRef.current.animateToMode1()
+      that.mode1ControllerRef.current.show()
+      that.mode2ControllerRef.current.hide()
+    }
     that.setState({
       transferMode: currentPage
     })
@@ -533,14 +682,6 @@ export default class WorkSpacePage extends Component {
     this.setState({
       showChooseContentInModel: true
     })
-    this.forceUpdate()
-  }
-
-  _renderChooseContentInModel() {
-    if (this.state.showChooseContentInModel)
-    return (
-      <ChooseContentInModel ref={this.chooseContentInModelRef}></ChooseContentInModel>
-    )
   }
 
 
@@ -582,6 +723,8 @@ export default class WorkSpacePage extends Component {
             style={styles.modeNaviText}
             onPress={() => {
               this.modeNaviRef.current.animateToMode1();
+              this.mode1ControllerRef.current.show()
+              that.mode2ControllerRef.current.hide()
               this.modeContainerRef.current.scrollTo({x: 0, animated: true})
               this.setState({transferMode: 0})
             }}>滤镜</Text>
@@ -589,28 +732,13 @@ export default class WorkSpacePage extends Component {
             style={styles.modeNaviText}
             onPress={() => {
               this.modeNaviRef.current.animateToMode2();
+              this.mode1ControllerRef.current.hide()
+              that.mode2ControllerRef.current.show()
               this.modeContainerRef.current.scrollTo({x: Dimensions.get('window').width, animated: true})
               this.setState({transferMode: 1})
             }}>融合</Text>
-          <FadeView style={{width: 250, height: 50, backgroundColor: 'powderblue'}} ref={this.modeNaviRef}>
-            <Text style={{fontSize: 28, textAlign: 'center', margin: 10}}>Fading in</Text>
-          </FadeView>
-        </View>
-
-        {/* 从相机添加原相片按钮 */}
-        <View style={styles.addContentImgFromCamera}>
-          <TouchableHighlight 
-            style={styles.icon_contentFromCamera}
-            onPress={() => this._selectContentImgByCam()}>
-            <Image source={require('../assets/icon/icon_camera.png')} style={{width: 25, height: 25}}></Image>
-          </TouchableHighlight>
-        </View>
-        {/* 从相册导入原相片按钮 */}
-        <View style={styles.addContentImgFromAlbum}>
-          <TouchableHighlight
-            style={styles.icon_contentFromAlbum}>
-            <Image source={require('../assets/icon/icon_album.png')} style={{width: 25, height: 25}}></Image>
-          </TouchableHighlight>
+          <ModeNaviHandler style={{width: 350, height: 50, backgroundColor: 'powderblue'}} ref={this.modeNaviRef}>
+          </ModeNaviHandler>
         </View>
 
         {/* 主工作台 */}
@@ -622,14 +750,22 @@ export default class WorkSpacePage extends Component {
               showsHorizontalScrollIndicator={false}
               pagingEnabled={true}
               onMomentumScrollEnd={this._modePageScrollEnd.bind(this, that)}
-              style={{width: '100%', display: 'flex'}}
+              style={{width: '100%', display: 'flex', bottom: 0}}
               ref={this.modeContainerRef}>
+
+              <View style={{width: Dimensions.get('window').width, height: '100%', bottom: 0}}>
+                {
+                  this._renderDisplayImg()
+                }
+              </View>
+
               <View style={{width: Dimensions.get('window').width, position: 'relative'}}>
                 {
                   this._renderDisplayImg()
                 }
               </View>
-              <View style={{width: Dimensions.get('window').width}}></View>
+
+
             </ScrollView>
           </View>
 
@@ -642,61 +778,24 @@ export default class WorkSpacePage extends Component {
 
 
         {/* 模式1：单一对单一模式 设置以及预置风格栏 */}
-        {/* 风格化程度滑块 */}
-        <View style={{position: 'absolute', bottom: 170, width: '100%'}}>
-          <Text style={{color: '#fff', marginLeft: 20, fontSize: 10}}>风格化程度</Text>
-          <Slider
-            style={{ width: 360, }}
-            value={50}
-            step={0}
-            minimumValue={0}
-            maximumValue={100}
-            minimumTrackTintColor={'rgb(124,220,254)'}
-            maximumTrackTintColor={'rgba(124,220,254, 0.7)'}
-            thumbTintColor={'white'}
-            onSlidingComplete={ (value) => this._updateStylize(value / 100)}
-          />
-        </View>
-        <View style={{position: 'absolute', bottom: 135, backgroundColor: 'rgba(255, 255, 255, 0.4)', width: '100%', height: 30, borderRadius: 10}}>
-          <View style={{display: 'flex', flexDirection: 'row', justifyContent:'center',alignItems: 'center', width: 96, height: 30, zIndex: 10, borderRadius: 10, backgroundColor: 'rgba(255, 255, 255, 0.8)'}}>
-            <Image source={require('../assets/icon/icon_fromCommunity.png')} style={{width: 33, height: 20}}></Image>
-            <Text style={{fontSize: 12}}>来自社区</Text>
-          </View>
-          <View style={{position: 'absolute', display: 'flex', flexDirection: 'row', top: 3, width: 240, left: 106, height: 30, backgroundColor: 'rgba(255, 255, 255, 0)'}}>
-            <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>分组1</Text>
-            <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>分组2</Text>
-            <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>分组3</Text>
-          </View>
-        </View>
-        <View style={styles.presetStylesMode1}>
-          <ScrollView horizontal={true} style={{height: 90, marginLeft: 20, marginRight: 20}}>
-            {
-              this.state.styleList.map((item, index) => this._renderStylePreview(item, index))
-            }
-          </ScrollView>
-          <View style={{height: 30, width: '100%', position: 'absolute', bottom: 0, display: 'flex', flexDirection: 'row', borderTopWidth: 1, borderColor: '#ccc'}}>
-            <TouchableOpacity
-              style={{flex: 1}}
-              onPress={() => {this.chooseContentInModelRef.current.show()}}>
-              <View style={[styles.custom_flexCenter, {flex: 1, textAlign: 'center', borderRightWidth: 1, borderColor: '#ddd'}]}>
-                <Image source={require('../assets/icon/icon_picture.png')} style={{width: 25, height: 25}}></Image>
-                <Text>图片</Text>
-              </View>
-            </TouchableOpacity>
-            <View style={[styles.custom_flexCenter, {flex: 1, textAlign: 'center', borderRightWidth: 1, borderColor: '#ddd'}]}>
-            <Image source={require('../assets/icon/icon_cut.png')} style={{width: 23, height: 23}}></Image>
-              <Text>裁剪</Text>
-            </View>
-            <View style={[styles.custom_flexCenter, {flex: 1, textAlign: 'center', borderRightWidth: 1, borderColor: '#ddd'}]}>
-            <Image source={require('../assets/icon/icon_board.png')} style={{width: 20, height: 20}}></Image>
-              <Text>画框</Text>
-            </View>
-            <View style={[styles.custom_flexCenter, {flex: 1, textAlign: 'center'}]}>
-            <Image source={require('../assets/icon/icon_modify.png')} style={{width: 20, height: 20}}></Image>
-              <Text>微调</Text>
-            </View>
-          </View>
-        </View>
+        <SingleTransferController
+          _updateStylize={this._updateStylize.bind(this)}
+          _renderStylePreview={this._renderStylePreview.bind(this)}
+          _showChooseContentInModel={this._showChooseContentInModel.bind(this)}
+          styleList={this.state.styleList}
+          isLoading={this.state.isLoading}
+          style={{width: '100%', position: 'absolute'}}
+          ref={this.mode1ControllerRef}
+        />
+        <MultiTransferController
+          _updateStylize={this._updateStylize.bind(this)}
+          _renderStylePreview={this._renderStylePreview.bind(this)}
+          _showChooseContentInModel={this._showChooseContentInModel.bind(this)}
+          styleList={this.state.styleList}
+          isLoading={this.state.isLoading}
+          style={{width: '100%', position: 'absolute'}}
+          ref={this.mode2ControllerRef}
+        />
 
 
         {/* 选择原图方式弹窗 */}
@@ -704,9 +803,6 @@ export default class WorkSpacePage extends Component {
           ref={this.chooseContentInModelRef}
           selectContentImgByCam={this._selectContentImgByCam.bind(this)}
           selectContentImgByAlbum={this._selectContentImgByAlbum.bind(this)}>
-          {/* <TouchableOpacity onPress={() => { this.popUp.hide() }} style={{ alignItems: 'center', backgroundColor: '#316DE6', height: 45, width: 80, borderRadius: 8, alignSelf: 'center', justifyContent: 'center', marginTop: 50 }}>
-            <Text style={{ color: '#fff' }}>关闭弹框</Text>
-          </TouchableOpacity> */}
         </ChooseContentInModel>
 
       </View>
@@ -726,16 +822,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     alignItems: 'center',
     height: '100%',
-  },
-  addContentImgFromCamera: {
-    position: 'absolute',
-    right: 80,
-    top: 10,
-  },
-  addContentImgFromAlbum: {
-    position: 'absolute',
-    right: 30,
-    top: 10,
   },
   icon_contentFromCamera: {
     width: 40,

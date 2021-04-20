@@ -6,7 +6,7 @@ import { TouchableHighlight } from 'react-native-gesture-handler'
  * 弹出层
  */
 const { width, height } = Dimensions.get('window')
-export default class PopUp extends Component {
+export default class ChooseContentInModel extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -86,7 +86,8 @@ export default class PopUp extends Component {
             <View style={styles.bottomContainer}>
               <Text style={{fontSize: 12}}>你想从哪里获取原相片？</Text>
               <TouchableHighlight
-                style={styles.selectBotton}activeOpacity={0.6}
+                style={styles.selectBotton}
+                activeOpacity={0.6}
                 underlayColor="#DDDDDD"
                 onPress={() => this._chooseWay('camera')}>
                 <View style={styles.custom_flexCenter}>
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
   }
 })
 
-PopUp.defaultProps = {
+ChooseContentInModel.defaultProps = {
   modalBoxHeight: 300, // 盒子高度
   modalBoxBg: '#fff', // 背景色
   hide: function () { }, // 关闭时的回调函数
