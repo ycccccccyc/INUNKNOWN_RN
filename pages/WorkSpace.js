@@ -761,7 +761,7 @@ export default class WorkSpacePage extends Component {
 
               <View style={{width: Dimensions.get('window').width, position: 'relative'}}>
                 {
-                  this._renderDisplayImg()
+                  this._renderDisplayImgMulti()
                 }
               </View>
 
@@ -787,9 +787,10 @@ export default class WorkSpacePage extends Component {
           style={{width: '100%', position: 'absolute'}}
           ref={this.mode1ControllerRef}
         />
+        {/* 模式2 */}
         <MultiTransferController
-          _updateStylize={this._updateStylize.bind(this)}
-          _renderStylePreview={this._renderStylePreview.bind(this)}
+          _updateStylize={this._updateStylizeMulti.bind(this)}
+          _renderStylePreview={this._renderStylePreviewMulti.bind(this)}
           _showChooseContentInModel={this._showChooseContentInModel.bind(this)}
           styleList={this.state.styleList}
           isLoading={this.state.isLoading}
@@ -801,8 +802,11 @@ export default class WorkSpacePage extends Component {
         {/* 选择原图方式弹窗 */}
         <ChooseContentInModel
           ref={this.chooseContentInModelRef}
+          transferMode={this.state.transferMode}
           selectContentImgByCam={this._selectContentImgByCam.bind(this)}
-          selectContentImgByAlbum={this._selectContentImgByAlbum.bind(this)}>
+          selectContentImgByAlbum={this._selectContentImgByAlbum.bind(this)}
+          selectContentImgByCamMulti={this._selectContentImgByCamMulti.bind(this)}
+          selectContentImgByAlbumMulti={this._selectContentImgByAlbumMulti.bind(this)}>
         </ChooseContentInModel>
 
       </View>

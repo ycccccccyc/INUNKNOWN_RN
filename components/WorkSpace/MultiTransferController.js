@@ -24,12 +24,16 @@ export default class MultiTransferController extends React.Component{
     super(props);
     this.state = {
       offset: new Animated.Value(0),
-      show: false
+      show: false,
+      styleList: this.props.styleList,
+      styleIndexSelectedMulti: [],
+      imgTransferred: false,
+      currentRatioConcernedIndex: 0
     };
     this.updateStylize = this.props._updateStylize
-    this.renderStylePreview = this.props._renderStylePreview
+    // this.renderStylePreview = this.props._renderStylePreview
     this.showChooseContentInModel = this.props._showChooseContentInModel
-    this.styleList = this.props.styleList
+
   }
 
 
@@ -82,6 +86,92 @@ export default class MultiTransferController extends React.Component{
     this.hide()
   }
 
+  _renderCurrentRatioConcerned() {
+    if (this.state.styleIndexSelectedMulti.length === 0) return (
+      <View style={{width: 40, height: 40, display: 'flex', justifyContent: 'center', alignItems:'center', position: 'absolute', left: 5, top: -20, backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: 5}}>
+        <Image source={require('../../assets/icon/icon_question.png')} style={{width: 30, height: 30, opacity: 0.5}}></Image>
+      </View>
+    )
+  }
+
+  _selectStyleImg() {
+
+  }
+
+  _addStyleSelected(index) {
+    let {styleList, styleIndexSelectedMulti} = this.state;
+
+    const thisSelected = styleList[index].selected;
+    styleList[index].selected = !thisSelected;
+
+    if (thisSelected) {
+      styleIndexSelectedMulti.splice(styleIndexSelectedMulti.indexOf(index), 1)
+    }
+    else {
+      styleIndexSelectedMulti.push(index);
+    }
+    
+    this.setState({
+      styleList,
+      styleIndexSelectedMulti,
+      imgTransferred: false
+    }, () => {
+      if (this.state.selectedContentImg) this.updateStylize();
+    });
+
+    console.log('目前的风格列表为：' + this.state.styleIndexSelectedMulti)
+  }
+
+  _renderStylePreview(item, index) {
+    // 首个：总是为添加
+    if (index === 0 && item.url.length === 0) return (
+      <TouchableOpacity key={index}
+        style={{marginRight: 10, backgroundColor: '#eee', width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 18}}
+        onPress={() => this._selectStyleImg()}>
+        <Image source={require('../../assets/images/stylesPreview/no_picture.png')} style={{width: 40, height: 40}}></Image>
+      </TouchableOpacity>
+    )
+    else if (!item.preset) return (
+      <View style={{marginRight: 10, marginTop: 18}} key={index}>
+        <TouchableOpacity  onPress={() => this._addStyleSelected(index)}>
+          <Image source={{ uri: item.url }} style={{width: 80, height: 80}}></Image>
+        </TouchableOpacity>
+        
+        <View style={{position: 'absolute', bottom: 0, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.6)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
+          <Text style={{fontSize: 10}}>自定义风格</Text>
+        </View>
+        {
+          this._renderStyleSelectedFlag()
+        }
+      </View>
+    );
+    else return (
+      <View key={index} style={{marginRight: 10, marginTop: 18}}>
+        <TouchableOpacity onPress={() => this._addStyleSelected(index)}>
+          <Image source={{uri: this.state.styleList[index].url}} style={{width: 80, height: 80}} />
+        </TouchableOpacity>
+        <View style={{position: 'absolute', bottom: 0, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.7)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
+          <Text style={{fontSize: 10}}>{item.name}</Text>
+        </View>
+        {
+          this._renderStyleSelectedFlag(index)
+        }
+      </View>
+    )
+  }
+  _renderStyleSelectedFlag(index) {
+    const bgc = this.state.styleIndexSelectedMulti.indexOf(index) > 0 ? 'rgb(23,173,118)' : '#bbb'
+    return (
+      <TouchableHighlight
+        style={[styles.flag_selected, {backgroundColor: bgc}]}
+        activeOpacity={0.6}
+        underlayColor="#999"
+        onPress={() => this._addStyleSelected(index)}>
+        <Image source={require('../../assets/icon/icon_selected.png')} style={{width: 22, height: 22}}></Image>
+      </TouchableHighlight>
+    )
+  }
+
 
 
   render() {
@@ -91,13 +181,16 @@ export default class MultiTransferController extends React.Component{
           width: '100%',
           bottom: this.state.offset.interpolate({
             inputRange: [0, 1],
-            outputRange: [-200, 0]
+            outputRange: [-220, 0]
           })
         }]}>
-        <View style={{position: 'absolute', bottom: 170, width: '100%'}}>
-          <Text style={{color: '#fff', marginLeft: 20, fontSize: 10}}>风格化程度</Text>
+        <View style={{position: 'absolute', bottom: 175, width: '100%'}}>
+          <Text style={{color: '#fff', marginLeft: 20, fontSize: 10, position: 'absolute', top: -12, left: 40}}>风格化程度</Text>
+          {
+            this._renderCurrentRatioConcerned()
+          }
           <Slider
-            style={{ width: 360, }}
+            style={{ width: Dimensions.get('window').width - 60, marginLeft: 35 }}
             value={50}
             step={0}
             minimumValue={0}
@@ -108,7 +201,7 @@ export default class MultiTransferController extends React.Component{
             onSlidingComplete={ (value) => this.updateStylize(value / 100)}
           />
         </View>
-        <View style={{position: 'absolute', bottom: 135, backgroundColor: 'rgba(255, 255, 255, 0.4)', width: '100%', height: 30, borderRadius: 10}}>
+        <View style={{position: 'absolute', bottom: 140, backgroundColor: 'rgba(255, 255, 255, 0.4)', width: '100%', height: 30, borderRadius: 10}}>
           <View style={{display: 'flex', flexDirection: 'row', justifyContent:'center',alignItems: 'center', width: 96, height: 30, zIndex: 10, borderRadius: 10, backgroundColor: 'rgba(255, 255, 255, 0.8)'}}>
             <Image source={require('../../assets/icon/icon_fromCommunity.png')} style={{width: 33, height: 20}}></Image>
             <Text style={{fontSize: 12}}>来自社区</Text>
@@ -122,7 +215,7 @@ export default class MultiTransferController extends React.Component{
         <View style={styles.presetStylesMode1}>
           <ScrollView horizontal={true} style={{height: 90, marginLeft: 20, marginRight: 20}}>
             {
-              this.styleList.map((item, index) => this.renderStylePreview(item, index))
+              this.state.styleList.map((item, index) => this._renderStylePreview(item, index))
             }
           </ScrollView>
           <View style={{height: 30, width: '100%', position: 'absolute', bottom: 0, display: 'flex', flexDirection: 'row', borderTopWidth: 1, borderColor: '#ccc'}}>
@@ -158,14 +251,13 @@ const styles = StyleSheet.create({
   presetStylesMode1: {
     position: 'absolute',
     width: '100%',
-    height: 130,
+    height: 135,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     bottom: 0,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
     display: 'flex',
     flexDirection: 'row',
-    paddingTop: 10,
   },
   custom_flexCenter: {
     display: 'flex',
@@ -173,6 +265,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  flag_selected: {
+    position: 'absolute',
+    top: -12, right: -5,
+    zIndex: 100,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: '#fff',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 })
 
 MultiTransferController.defaultProps = {

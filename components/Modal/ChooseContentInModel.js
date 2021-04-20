@@ -13,6 +13,7 @@ export default class ChooseContentInModel extends Component {
       offset: new Animated.Value(0),
       show: false
     }
+    this.transferMode = this.props.transferMode;
   }
 
   in() {
@@ -58,10 +59,21 @@ export default class ChooseContentInModel extends Component {
   }
 
   _chooseWay(method) {
-    const { selectContentImgByCam, selectContentImgByAlbum } = this.props;
+    const {
+      selectContentImgByCam,
+      selectContentImgByAlbum,
+      selectContentImgByCamMulti,
+      selectContentImgByAlbumMulti,
+      transferMode
+    } = this.props;
     this.hide();
-    if (method === 'camera') selectContentImgByCam();
-    else if(method === 'album') selectContentImgByAlbum();
+    if (method === 'camera') {
+      if (transferMode === 0) selectContentImgByCam();
+      else selectContentImgByCamMulti();
+    } else if(method === 'album') {
+      if (transferMode === 0) selectContentImgByAlbum();
+      else selectContentImgByAlbumMulti();
+    }
     else;
   }
 
