@@ -17,6 +17,9 @@ import {
   Slider
 } from 'react-native';
 
+import SettingPanel from './SettingPanel';
+import MultiStyleRatioPanel from './MultiStyleRatioPanel';
+
 const { width, height } = Dimensions.get('window')
 
 export default class MultiTransferController extends React.Component{
@@ -34,8 +37,10 @@ export default class MultiTransferController extends React.Component{
     // this.renderStylePreview = this.props._renderStylePreview
     this.showChooseContentInModel = this.props._showChooseContentInModel
 
-  }
+    this.settingPanelRef = React.createRef();
+    this.multiStyleRatioPanelRef = React.createRef();
 
+  }
 
 
   in() {
@@ -86,10 +91,18 @@ export default class MultiTransferController extends React.Component{
     this.hide()
   }
 
+  // 渲染当前选定、正在操控程度设置的预览图
   _renderCurrentRatioConcerned() {
-    if (this.state.styleIndexSelectedMulti.length === 0) return (
-      <View style={{width: 40, height: 40, display: 'flex', justifyContent: 'center', alignItems:'center', position: 'absolute', left: 5, top: -20, backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: 5}}>
-        <Image source={require('../../assets/icon/icon_question.png')} style={{width: 30, height: 30, opacity: 0.5}}></Image>
+    const { styleIndexSelectedMulti, styleList } = this.state;
+    if (styleIndexSelectedMulti.length === 0) return (
+      <Image source={require('../../assets/icon/icon_question.png')} style={{width: 30, height: 30, opacity: 0.5}}></Image>
+    )
+    return (
+      <View style={{width: 30, height: 30, borderWidth: 1, borderColor: '#fff', backgroundColor: 'rgba(0, 0, 0, 0)', top: -1, left: -1}}>
+        <Image source={{uri: styleList[styleIndexSelectedMulti[0]].url}} style={{width: 30, height: 30, left: 2, top: 2}}></Image>
+        <View style={styles.current_ratio_concerned_flag}>
+          <Text style={{fontSize: 10, color: '#fff', textAlign: 'center'}}>{styleIndexSelectedMulti.length}</Text>
+        </View>
       </View>
     )
   }
@@ -160,7 +173,7 @@ export default class MultiTransferController extends React.Component{
     )
   }
   _renderStyleSelectedFlag(index) {
-    const bgc = this.state.styleIndexSelectedMulti.indexOf(index) > 0 ? 'rgb(23,173,118)' : '#bbb'
+    const bgc = this.state.styleIndexSelectedMulti.indexOf(index) !== -1 ? 'rgb(23,173,118)' : '#bbb'
     return (
       <TouchableHighlight
         style={[styles.flag_selected, {backgroundColor: bgc}]}
@@ -184,11 +197,19 @@ export default class MultiTransferController extends React.Component{
             outputRange: [-220, 0]
           })
         }]}>
+
+        {/* 程度控制条 */}
         <View style={{position: 'absolute', bottom: 175, width: '100%'}}>
           <Text style={{color: '#fff', marginLeft: 20, fontSize: 10, position: 'absolute', top: -12, left: 40}}>风格化程度</Text>
-          {
-            this._renderCurrentRatioConcerned()
-          }
+          
+          {/* 可点击的风格比例详情列表预览图 */}
+          <TouchableOpacity style={styles.current_ratio_concerned} onPress={() => this.multiStyleRatioPanelRef.current.show()}>
+            {
+              this._renderCurrentRatioConcerned()
+            }
+          </TouchableOpacity>
+
+          {/* 滑块 */}
           <Slider
             style={{ width: Dimensions.get('window').width - 60, marginLeft: 35 }}
             value={50}
@@ -200,7 +221,16 @@ export default class MultiTransferController extends React.Component{
             thumbTintColor={'white'}
             onSlidingComplete={ (value) => this.updateStylize(value / 100)}
           />
+
+          {/* 设置面板按钮 */}
+          <TouchableOpacity
+            style={{width: 30, height: 30, position: 'absolute', bottom: -5, right: 5}}
+            onPress={() => {this.settingPanelRef.current.showOrHide()}}>
+            <Image source={require('../../assets/icon/icon_setting_48.png')} style={{width: 25, height: 25, opacity: 0.5}}></Image>
+          </TouchableOpacity>
         </View>
+
+        {/* 分类 */}
         <View style={{position: 'absolute', bottom: 140, backgroundColor: 'rgba(255, 255, 255, 0.4)', width: '100%', height: 30, borderRadius: 10}}>
           <View style={{display: 'flex', flexDirection: 'row', justifyContent:'center',alignItems: 'center', width: 96, height: 30, zIndex: 10, borderRadius: 10, backgroundColor: 'rgba(255, 255, 255, 0.8)'}}>
             <Image source={require('../../assets/icon/icon_fromCommunity.png')} style={{width: 33, height: 20}}></Image>
@@ -212,6 +242,8 @@ export default class MultiTransferController extends React.Component{
             <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>分组3</Text>
           </View>
         </View>
+
+        {/* 风格图列表 */}
         <View style={styles.presetStylesMode1}>
           <ScrollView horizontal={true} style={{height: 90, marginLeft: 20, marginRight: 20}}>
             {
@@ -241,6 +273,29 @@ export default class MultiTransferController extends React.Component{
             </View>
           </View>
         </View>
+
+        {/* 设置面板 */}
+        <SettingPanel ref={this.settingPanelRef} mode={1}>
+          <TouchableOpacity
+            onPress={() => {this.settingPanelRef.current.showOrHide()}}
+            style={{width: 100, height: 25, position: 'absolute', left: 50, display: 'flex', alignItems: 'center', top: 8}}>
+            <Image source={require('../../assets/icon/icon_hide_down.png')} style={{width: 17, height: 5}}></Image>
+          </TouchableOpacity>
+          <Text style={[{marginTop: 15}, styles.setting_panel_text]}>内容图粒度：</Text>
+          <Text style={styles.setting_panel_text}>风格图粒度：</Text>
+          <Text style={styles.setting_panel_text}>特征提取算法：</Text>
+          <Text style={styles.setting_panel_text}>迁移算法：</Text>
+        </SettingPanel>
+
+        {/* 风格比例列表面板 */}
+        <MultiStyleRatioPanel ref={this.multiStyleRatioPanelRef}>
+          <TouchableOpacity
+            onPress={() => {this.multiStyleRatioPanelRef.current.showOrHide()}}
+            style={{width: 100, height: 25, position: 'absolute', left: 50, display: 'flex', alignItems: 'center', top: 8}}>
+            <Image source={require('../../assets/icon/icon_hide_down.png')} style={{width: 17, height: 5}}></Image>
+          </TouchableOpacity>
+          <Text style={[{marginTop: 15}, styles.setting_panel_text]}>风格比例面板</Text>
+        </MultiStyleRatioPanel>
       </Animated.View>
 
     )
@@ -277,6 +332,35 @@ const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  current_ratio_concerned: {
+    width: 40,
+    height: 40,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems:'center',
+    position: 'absolute',
+    left: 5,
+    top: -20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 5
+  },
+  current_ratio_concerned_flag: {
+    width: 15,
+    height: 15,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    position: 'absolute', right: -3, bottom: -3,
+    borderWidth: 1,
+    borderColor: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  setting_panel_text: {
+    color: '#fff',
+    fontSize: 11,
+    marginBottom: 5
   }
 })
 

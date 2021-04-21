@@ -17,83 +17,7 @@ import {
   Slider
 } from 'react-native';
 
-
-// 设定面板的动画
-class SettingPanelAnim extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      show: false,
-      panelHeight: new Animated.Value(0),
-    }
-  }
-
-  in() {
-    Animated.timing(
-      this.state.panelHeight,
-      {
-        easing: Easing.linear,
-        duration: 200,
-        toValue: 1
-      }
-    ).start()
-  }
-
-  out() {
-    Animated.timing(
-      this.state.panelHeight,
-      {
-        easing: Easing.linear,
-        duration: 200,
-        toValue: 0
-      }
-    ).start()
-
-    setTimeout(
-      () => this.setState({ show: false }),
-      300
-    )
-  }
-
-  show() {
-    this.setState({
-      show: true
-    }, this.in())
-  }
-
-  hide() {
-    this.out()
-  }
-
-  showOrHide() {
-    if (this.state.show) this.hide();
-    else this.show()
-  }
-
-  componentDidMount() {
-    this.hide();
-  }
-
-  defaultHide() {
-    this.props.hide()
-    this.out()
-  }
-
-  render() {
-    return (
-      <Animated.View
-        style={[styles.setting_panel, {
-          height: this.state.panelHeight.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, 100]
-          })
-        }]}>
-        {this.props.children}
-      </Animated.View>
-    );
-  }
-}
-
+import SettingPanel from './SettingPanel';
 
 
 export default class SingleTransferController extends React.Component{
@@ -196,7 +120,7 @@ export default class SingleTransferController extends React.Component{
         </TouchableOpacity>
 
         {/* 设定面板 */}
-        <SettingPanelAnim ref={this.settingPanelRef}>
+        <SettingPanel ref={this.settingPanelRef} mode={0}>
           <TouchableOpacity
             onPress={() => {this.settingPanelRef.current.showOrHide()}}
             style={{width: 100, height: 25, position: 'absolute', left: 50, display: 'flex', alignItems: 'center', top: 8}}>
@@ -206,7 +130,7 @@ export default class SingleTransferController extends React.Component{
           <Text style={styles.setting_panel_text}>风格图粒度：</Text>
           <Text style={styles.setting_panel_text}>特征提取算法：</Text>
           <Text style={styles.setting_panel_text}>迁移算法：</Text>
-        </SettingPanelAnim>
+        </SettingPanel>
 
 
         {/* 分组 */}

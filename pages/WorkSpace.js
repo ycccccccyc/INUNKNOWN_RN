@@ -169,6 +169,15 @@ export default class WorkSpacePage extends Component {
 
   }
 
+
+  // 切换模式时重置一些必要的数据
+  _clearUserData() {
+    const { styleList } = this.state;
+    styleList.map((item) => {item.selected = false});
+    this.setState({styleList});
+  }
+
+
   // 渲染原始的内容图
   _renderContentImage() {
     // 处理显示图片的大小
@@ -672,6 +681,7 @@ export default class WorkSpacePage extends Component {
     that.setState({
       transferMode: currentPage
     })
+    this._clearUserData()
   }
 
 
@@ -722,6 +732,7 @@ export default class WorkSpacePage extends Component {
           <Text
             style={styles.modeNaviText}
             onPress={() => {
+              this._clearUserData();
               this.modeNaviRef.current.animateToMode1();
               this.mode1ControllerRef.current.show()
               that.mode2ControllerRef.current.hide()
@@ -731,6 +742,7 @@ export default class WorkSpacePage extends Component {
           <Text
             style={styles.modeNaviText}
             onPress={() => {
+              this._clearUserData();
               this.modeNaviRef.current.animateToMode2();
               this.mode1ControllerRef.current.hide()
               that.mode2ControllerRef.current.show()
