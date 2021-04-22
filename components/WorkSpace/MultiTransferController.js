@@ -186,6 +186,32 @@ export default class MultiTransferController extends React.Component{
   }
 
 
+  _renderStyleRatioContoller(item, index) {
+    const { styleIndexSelectedMulti, styleList } = this.state;
+    return (
+      <View ref={index}  style={{width: '100%', height: 36, marginBottom: 5, borderBottomWidth: 1, borderColor: '#eee'}}>
+        <Image source={{uri: styleList[styleIndexSelectedMulti[index]].url}} style={{width: 32, height: 32, borderRadius: 4, position: 'absolute'}}></Image>
+        <View style={{marginLeft: 40}}>
+          <Text style={{fontSize: 11}}>{ styleList[styleIndexSelectedMulti[index]].name }</Text>
+          <Slider
+            style={{ width: 220, left: -14}}
+            value={50}
+            step={0}
+            minimumValue={0}
+            maximumValue={100}
+            minimumTrackTintColor={'rgb(79,193,241)'}
+            maximumTrackTintColor={'rgba(79,193,241, 0.8)'}
+            thumbTintColor={'rgb(124,220,254)'}
+            onSlidingComplete={ (value) => {}}
+          />
+        </View>
+        <View style={{position: 'absolute', right: 0, top: 14}}>
+          <Text style={{fontSize: 11}}>99%</Text>
+        </View>
+      </View>
+    )
+  }
+
 
   render() {
     return (
@@ -289,12 +315,20 @@ export default class MultiTransferController extends React.Component{
 
         {/* 风格比例列表面板 */}
         <MultiStyleRatioPanel ref={this.multiStyleRatioPanelRef}>
+          {/* 关闭按钮 */}
           <TouchableOpacity
             onPress={() => {this.multiStyleRatioPanelRef.current.showOrHide()}}
-            style={{width: 100, height: 25, position: 'absolute', left: 50, display: 'flex', alignItems: 'center', top: 8}}>
-            <Image source={require('../../assets/icon/icon_hide_down.png')} style={{width: 17, height: 5}}></Image>
+            style={{position: 'absolute', right: 0, display: 'flex', alignItems: 'center', justifyContent:'center', top: 10, right: 10, zIndex: 100}}>
+            <Image source={require('../../assets/icon/icon_close.png')} style={{width: 15, height: 15}}></Image>
           </TouchableOpacity>
-          <Text style={[{marginTop: 15}, styles.setting_panel_text]}>风格比例面板</Text>
+          <Text style={[styles.multi_style_ratio_panel_text, {marginTop: 8, textAlign: 'center', fontSize: 12}]}>风格比例面板（{this.state.styleIndexSelectedMulti.length}）</Text>
+
+          <ScrollView
+            style={{ margin: 10}}>
+            {
+              this.state.styleIndexSelectedMulti.map((item, index) => this._renderStyleRatioContoller(item, index))
+            }
+          </ScrollView>
         </MultiStyleRatioPanel>
       </Animated.View>
 
@@ -361,6 +395,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 11,
     marginBottom: 5
+  },
+  multi_style_ratio_panel_text: {
+    color: '#000',
+    fontSize: 11,
   }
 })
 

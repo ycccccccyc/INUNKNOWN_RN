@@ -84,7 +84,7 @@ export default class MultiStyleRatioPanel extends React.Component {
         style={[styles.setting_panel, {
           height: this.state.panelHeight.interpolate({
             inputRange: [0, 1],
-            outputRange: [0, 100]
+            outputRange: [0, 200]
           })
         }]}>
         {this.props.children}
@@ -95,9 +95,9 @@ export default class MultiStyleRatioPanel extends React.Component {
 
 const styles = StyleSheet.create({
   setting_panel: {
-    width: 200,
+    width: 300,
     height: 0,
-    backgroundColor: 'rgba(50, 50, 50, 0.6)',
+    backgroundColor: 'rgba(255, 255, 255, 1)',
     position: 'absolute',
     bottom: 215,
     left: 5,
@@ -106,9 +106,4 @@ const styles = StyleSheet.create({
     paddingRight: 10,
     overflow: 'hidden'
   },
-  setting_panel_text: {
-    color: '#fff',
-    fontSize: 11,
-    marginBottom: 5
-  }
 })
