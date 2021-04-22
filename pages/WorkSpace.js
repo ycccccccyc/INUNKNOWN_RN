@@ -316,7 +316,6 @@ export default class WorkSpacePage extends Component {
         imgTransferredMulti: false
       })
       this.setState({selectedContentImgMulti: true})
-      if (this.state.styleIndexSelectedMuti.length > 0) this._updateStylizeMulti();
     })
   }
 
@@ -413,7 +412,6 @@ export default class WorkSpacePage extends Component {
         imgTransferredMulti: false
       })
       this.setState({selectedContentImgMulti: true})
-      if (this.state.styleIndexSelected > 0) this._updateStylizeMulti();
     })
   }
 
@@ -563,44 +561,6 @@ export default class WorkSpacePage extends Component {
     }, () => {
       if (this.state.selectedContentImg) this._updateStylize();
     });
-  }
-  ///////////////////////////////////
-  _renderStylePreviewMulti(item, index) {
-    // 首个：总是为添加
-    if (index === 0 && item.url.length === 0) return (
-      <TouchableOpacity key={index}
-        style={{marginRight: 10, backgroundColor: '#eee', width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center'}}
-        onPress={() => this._selectStyleImg()}>
-        <Image source={require('../assets/images/stylesPreview/no_picture.png')} style={{width: 40, height: 40}}></Image>
-      </TouchableOpacity>
-    )
-    else if (!item.preset) return (
-      <View style={{marginRight: 10}} key={index}>
-        <TouchableOpacity  onPress={() => this._changeStyleSelected(index)}>
-          <Image source={{ uri: item.url }} style={{width: 80, height: 80}}></Image>
-        </TouchableOpacity>
-        
-        <View style={{position: 'absolute', bottom: 10, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.6)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
-          <Text style={{fontSize: 10}}>自定义风格</Text>
-        </View>
-        {
-          item.selected ? this._renderStyleSelectedFlag() : null
-        }
-      </View>
-    );
-    else return (
-      <View key={index} style={{marginRight: 10, position: 'relative'}}>
-        <TouchableOpacity onPress={() => this._changeStyleSelected(index)}>
-          <Image source={{uri: this.state.styleList[index].url}} style={{width: 80, height: 80}} />
-        </TouchableOpacity>
-        <View style={{position: 'absolute', bottom: 10, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.7)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
-          <Text style={{fontSize: 10}}>{item.name}</Text>
-        </View>
-        {
-          item.selected ? this._renderStyleSelectedFlag() : null
-        }
-      </View>
-    )
   }
 
 
@@ -801,9 +761,9 @@ export default class WorkSpacePage extends Component {
         />
         {/* 模式2 */}
         <MultiTransferController
-          _updateStylize={this._updateStylizeMulti.bind(this)}
-          _renderStylePreview={this._renderStylePreviewMulti.bind(this)}
           _showChooseContentInModel={this._showChooseContentInModel.bind(this)}
+          _selectStyleImg={this._selectStyleImg.bind(this)}
+          _updateStylizeMulti={this._updateStylizeMulti.bind(this)}
           styleList={this.state.styleList}
           isLoading={this.state.isLoading}
           style={{width: '100%', position: 'absolute'}}

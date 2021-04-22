@@ -23,13 +23,14 @@ export default class MultiStyleRatioPanel extends React.Component {
     super(props);
     this.state = {
       show: false,
-      panelHeight: new Animated.Value(0),
+      offset: new Animated.Value(0),
+      itemNum: this.props.itemNum
     }
   }
 
   in() {
     Animated.timing(
-      this.state.panelHeight,
+      this.state.offset,
       {
         easing: Easing.linear,
         duration: 200,
@@ -40,7 +41,7 @@ export default class MultiStyleRatioPanel extends React.Component {
 
   out() {
     Animated.timing(
-      this.state.panelHeight,
+      this.state.offset,
       {
         easing: Easing.linear,
         duration: 200,
@@ -82,7 +83,7 @@ export default class MultiStyleRatioPanel extends React.Component {
     return (
       <Animated.View
         style={[styles.setting_panel, {
-          height: this.state.panelHeight.interpolate({
+          height: this.state.offset.interpolate({
             inputRange: [0, 1],
             outputRange: [0, 200]
           })

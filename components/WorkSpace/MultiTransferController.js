@@ -31,14 +31,17 @@ export default class MultiTransferController extends React.Component{
       styleList: this.props.styleList,
       styleIndexSelectedMulti: [],
       imgTransferred: false,
-      currentRatioConcernedIndex: 0
+      currentRatioConcernedIndex: -1,
+      styleRatioList: [],
+      currentRatio: 50
     };
-    this.updateStylize = this.props._updateStylize
-    // this.renderStylePreview = this.props._renderStylePreview
+    this.updateStylizeMulti = this.props._updateStylizeMulti
     this.showChooseContentInModel = this.props._showChooseContentInModel
+    this.selectStyleImg = this.props._selectStyleImg
 
     this.settingPanelRef = React.createRef();
     this.multiStyleRatioPanelRef = React.createRef();
+
 
   }
 
@@ -107,46 +110,58 @@ export default class MultiTransferController extends React.Component{
     )
   }
 
-  _selectStyleImg() {
-
-  }
-
   _addStyleSelected(index) {
-    let {styleList, styleIndexSelectedMulti} = this.state;
+    let {styleList, styleIndexSelectedMulti, styleRatioList} = this.state;
 
     const thisSelected = styleList[index].selected;
     styleList[index].selected = !thisSelected;
 
     if (thisSelected) {
-      styleIndexSelectedMulti.splice(styleIndexSelectedMulti.indexOf(index), 1)
+      const tempIndex = styleIndexSelectedMulti.indexOf(index);
+      styleIndexSelectedMulti.splice(tempIndex, 1)
+      styleRatioList.splice(tempIndex, 1)
     }
     else {
       styleIndexSelectedMulti.push(index);
+      styleRatioList.push(50);
     }
     
     this.setState({
       styleList,
       styleIndexSelectedMulti,
-      imgTransferred: false
-    }, () => {
-      if (this.state.selectedContentImg) this.updateStylize();
+      styleRatioList,
+      imgTransferred: false,
+      currentRatio: 50
     });
 
     console.log('目前的风格列表为：' + this.state.styleIndexSelectedMulti)
   }
+
+  _concernCurrentRatio(index) {
+    let { currentRatioConcernedIndex, styleIndexSelectedMulti, styleRatioList } = this.state;
+    if (currentRatioConcernedIndex === index) currentRatioConcernedIndex = -1;
+    else currentRatioConcernedIndex = index;
+    this.setState({currentRatioConcernedIndex});
+
+    // 确认同步当前滑条为列表中的值。
+    this.setState({
+      currentRatio: styleRatioList[styleIndexSelectedMulti.indexOf(index)]
+    })
+  }
+
 
   _renderStylePreview(item, index) {
     // 首个：总是为添加
     if (index === 0 && item.url.length === 0) return (
       <TouchableOpacity key={index}
         style={{marginRight: 10, backgroundColor: '#eee', width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 18}}
-        onPress={() => this._selectStyleImg()}>
+        onPress={() => this.selectStyleImg()}>
         <Image source={require('../../assets/images/stylesPreview/no_picture.png')} style={{width: 40, height: 40}}></Image>
       </TouchableOpacity>
     )
     else if (!item.preset) return (
       <View style={{marginRight: 10, marginTop: 18}} key={index}>
-        <TouchableOpacity  onPress={() => this._addStyleSelected(index)}>
+        <TouchableOpacity  onPress={() => this._concernCurrentRatio(index)}>
           <Image source={{ uri: item.url }} style={{width: 80, height: 80}}></Image>
         </TouchableOpacity>
         
@@ -154,13 +169,13 @@ export default class MultiTransferController extends React.Component{
           <Text style={{fontSize: 10}}>自定义风格</Text>
         </View>
         {
-          this._renderStyleSelectedFlag()
+          this._renderStyleSelectedFlag(index)
         }
       </View>
     );
     else return (
       <View key={index} style={{marginRight: 10, marginTop: 18}}>
-        <TouchableOpacity onPress={() => this._addStyleSelected(index)}>
+        <TouchableOpacity onPress={() => this._concernCurrentRatio(index)}>
           <Image source={{uri: this.state.styleList[index].url}} style={{width: 80, height: 80}} />
         </TouchableOpacity>
         <View style={{position: 'absolute', bottom: 0, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.7)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
@@ -186,31 +201,65 @@ export default class MultiTransferController extends React.Component{
   }
 
 
+  _updateRatio(index, value) {
+    const { styleIndexSelectedMulti, styleRatioList, currentRatioConcernedIndex } = this.state;
+    styleRatioList[index] = Math.floor(value);
+    this.setState({styleRatioList});
+
+    // 如果当前更新的恰好正在被选中，需要同时更新当前滑条。
+    if (styleIndexSelectedMulti[index] === currentRatioConcernedIndex)
+    this.setState({currentRatio: Math.floor(value)})
+  }
+  _updateCurrentRatio(value) {
+    let { styleIndexSelectedMulti, styleRatioList, currentRatio, currentRatioConcernedIndex } = this.state;
+    currentRatio = Math.floor(value);
+    styleRatioList[styleIndexSelectedMulti.indexOf(currentRatioConcernedIndex)] = currentRatio;
+    this.setState({
+      styleIndexSelectedMulti,
+      styleRatioList,
+      currentRatio,
+      currentRatioConcernedIndex
+    })
+  }
+
+
+
+
+
   _renderStyleRatioContoller(item, index) {
-    const { styleIndexSelectedMulti, styleList } = this.state;
+    const { styleIndexSelectedMulti, styleList, styleRatioList } = this.state;
     return (
       <View ref={index}  style={{width: '100%', height: 36, marginBottom: 5, borderBottomWidth: 1, borderColor: '#eee'}}>
         <Image source={{uri: styleList[styleIndexSelectedMulti[index]].url}} style={{width: 32, height: 32, borderRadius: 4, position: 'absolute'}}></Image>
         <View style={{marginLeft: 40}}>
           <Text style={{fontSize: 11}}>{ styleList[styleIndexSelectedMulti[index]].name }</Text>
           <Slider
-            style={{ width: 220, left: -14}}
-            value={50}
+            style={{ width: 218, left: -14}}
+            value={styleRatioList[index]}
             step={0}
             minimumValue={0}
             maximumValue={100}
             minimumTrackTintColor={'rgb(79,193,241)'}
             maximumTrackTintColor={'rgba(79,193,241, 0.8)'}
             thumbTintColor={'rgb(124,220,254)'}
-            onSlidingComplete={ (value) => {}}
+            onSlidingComplete={ (value) => this._updateRatio(index, value)}
           />
         </View>
         <View style={{position: 'absolute', right: 0, top: 14}}>
-          <Text style={{fontSize: 11}}>99%</Text>
+          <Text style={{fontSize: 11}}>{styleRatioList[index]}%</Text>
         </View>
       </View>
     )
   }
+
+  _renderEmpty() {
+    return (
+      <Text style={{textAlign: 'center', marginTop: 60, fontSize: 12, color: '#999'}}>还没有选择任何风格图~</Text>
+    )
+  }
+
+
+
 
 
   render() {
@@ -224,28 +273,36 @@ export default class MultiTransferController extends React.Component{
           })
         }]}>
 
+        {/* 执行风格化按钮 */}
+        <TouchableOpacity
+          style={{position: 'absolute', bottom: 210, right: 10, width: 40, height: 20, borderRadius: 10, backgroundColor: 'rgb(156,220,254)'}}
+          onPress={() => this.updateStylizeMulti()}>
+          <Text>执行</Text>
+        </TouchableOpacity>
+
         {/* 程度控制条 */}
         <View style={{position: 'absolute', bottom: 175, width: '100%'}}>
           <Text style={{color: '#fff', marginLeft: 20, fontSize: 10, position: 'absolute', top: -12, left: 40}}>风格化程度</Text>
           
-          {/* 可点击的风格比例详情列表预览图 */}
-          <TouchableOpacity style={styles.current_ratio_concerned} onPress={() => this.multiStyleRatioPanelRef.current.show()}>
+          {/* 风格比例面板按钮 */}
+          <TouchableOpacity style={styles.current_ratio_concerned} onPress={() => this.multiStyleRatioPanelRef.current.showOrHide()}>
             {
               this._renderCurrentRatioConcerned()
             }
           </TouchableOpacity>
 
-          {/* 滑块 */}
+          {/* 当前选中的风格图比例的调整滑块 */}
           <Slider
             style={{ width: Dimensions.get('window').width - 60, marginLeft: 35 }}
-            value={50}
+            value={this.state.currentRatio}
             step={0}
             minimumValue={0}
             maximumValue={100}
-            minimumTrackTintColor={'rgb(124,220,254)'}
-            maximumTrackTintColor={'rgba(124,220,254, 0.7)'}
+            disabled={(this.state.currentRatioConcernedIndex >= 0 && this.state.styleList[this.state.currentRatioConcernedIndex].selected) ? false : true}
+            minimumTrackTintColor={this.state.currentRatioConcernedIndex < 0 ? '#eee' : 'rgb(124,220,254)'}
+            maximumTrackTintColor={this.state.currentRatioConcernedIndex < 0 ? '#333' : 'rgba(124,220,254, 0.7)'}
             thumbTintColor={'white'}
-            onSlidingComplete={ (value) => this.updateStylize(value / 100)}
+            onSlidingComplete={ (value) => this._updateCurrentRatio(value) }
           />
 
           {/* 设置面板按钮 */}
@@ -314,7 +371,7 @@ export default class MultiTransferController extends React.Component{
         </SettingPanel>
 
         {/* 风格比例列表面板 */}
-        <MultiStyleRatioPanel ref={this.multiStyleRatioPanelRef}>
+        <MultiStyleRatioPanel ref={this.multiStyleRatioPanelRef} itemNum={this.state.styleIndexSelectedMulti.length}>
           {/* 关闭按钮 */}
           <TouchableOpacity
             onPress={() => {this.multiStyleRatioPanelRef.current.showOrHide()}}
@@ -326,7 +383,9 @@ export default class MultiTransferController extends React.Component{
           <ScrollView
             style={{ margin: 10}}>
             {
-              this.state.styleIndexSelectedMulti.map((item, index) => this._renderStyleRatioContoller(item, index))
+              this.state.styleIndexSelectedMulti.length === 0
+              ? this._renderEmpty()
+              : this.state.styleIndexSelectedMulti.map((item, index) => this._renderStyleRatioContoller(item, index))
             }
           </ScrollView>
         </MultiStyleRatioPanel>
