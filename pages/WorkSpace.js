@@ -26,9 +26,9 @@ import {imageToBase64, base64ImageToTensor, tensorToImageUrl, resizeImage, toDat
 
 
 import ChooseContentInModel from '../components/Modal/ChooseContentInModel';
-
 import SingleTransferController from '../components/WorkSpace/SingleTransferController';
 import MultiTransferController from '../components/WorkSpace/MultiTransferController';
+import EtcModal from '../components/WorkSpace/EtcModal';
 
 import styleList from '../constant/styleList'
 
@@ -166,6 +166,7 @@ export default class WorkSpacePage extends Component {
     this.chooseContentInModelRef = React.createRef();
     this.mode1ControllerRef = React.createRef();
     this.mode2ControllerRef = React.createRef();
+    this.etcModalRef = React.createRef();
 
   }
 
@@ -174,20 +175,26 @@ export default class WorkSpacePage extends Component {
   _clearUserData() {
     let {
       styleList,
-      selectedContentImg,
-      selectedContentImgMulti,
       styleIndexSelectedMuti,
-      displayImg,
-      displayImgMutil
+      imgTransferred,
+      imgTransferredMulti,
+      contentImg,
+      contentImgMulti,
+      selectedContentImg,
+      selectedContentImgMulti
     } = this.state;
     styleList.map((item) => {item.selected = false});
-    selectedContentImg = '',
-    selectedContentImgMulti = '',
-    styleIndexSelectedMuti = [],
-    displayImg = '',
-    displayImgMutil = ''
+    styleIndexSelectedMuti = [];
+    contentImg = '';
+    contentImgMulti = '';
+    imgTransferred = false;
+    imgTransferredMulti = false;
+    selectedContentImg = false;
+    selectedContentImgMulti = false;
 
-    this.setState({styleList, selectedContentImg, selectedContentImgMulti, styleIndexSelectedMuti, displayImg, displayImgMutil});
+    this.setState({styleList, styleIndexSelectedMuti, contentImg, contentImgMulti, imgTransferredMulti, selectedContentImg, selectedContentImgMulti});
+
+    this.mode2ControllerRef.current.clearUserData();
   }
 
 
@@ -634,11 +641,12 @@ export default class WorkSpacePage extends Component {
 
   _renderDisplayImg() {
     const {selectedContentImg, imgTransferred} = this.state;
+    console.log(selectedContentImg, imgTransferred)
     if (selectedContentImg && imgTransferred) return this._renderResult()
     else if (selectedContentImg) return this._renderContentImage()
     else return (
       <TouchableOpacity
-        style={{backgroundColor: 'rgba(255, 255, 255, 0.04)', width: 260, left: Dimensions.get('window').width /2 - 130, borderRadius: 20, borderWidth: 2, borderColor:'rgba(255, 255, 255, 0.1)'}}
+        style={{backgroundColor: 'rgba(255, 255, 255, 0.04)', width: 260, borderRadius: 20, borderWidth: 2, borderColor:'rgba(255, 255, 255, 0.1)'}}
         onPress={() => {this.chooseContentInModelRef.current.show()}}>
         <View style={{height: 220, display: 'flex', alignItems: 'center', jusitfyContent: 'center'}}>
           <Image source={require('../assets/icon/icon_empty.png')} style={{width: 80, height: 80, opacity: 0.3, top: 50}}></Image>
@@ -653,7 +661,7 @@ export default class WorkSpacePage extends Component {
     else if (selectedContentImgMulti) return this._renderContentImageMulti()
     else return (
       <TouchableOpacity
-        style={{backgroundColor: 'rgba(255, 255, 255, 0.04)', width: 260, left: Dimensions.get('window').width /2 - 130, borderRadius: 20, borderWidth: 2, borderColor:'rgba(255, 255, 255, 0.1)'}}
+        style={{backgroundColor: 'rgba(255, 255, 255, 0.04)', width: 260, borderRadius: 20, borderWidth: 2, borderColor:'rgba(255, 255, 255, 0.1)'}}
         onPress={() => {this.chooseContentInModelRef.current.show()}}>
         <View style={{height: 220, display: 'flex', alignItems: 'center', jusitfyContent: 'center'}}>
           <Image source={require('../assets/icon/icon_empty.png')} style={{width: 80, height: 80, opacity: 0.3, top: 50}}></Image>
@@ -756,6 +764,15 @@ export default class WorkSpacePage extends Component {
           </ModeNaviHandler>
         </View>
 
+        {/* 保存按钮 */}
+        <View style={styles.icon_save}>
+          <TouchableOpacity
+            style={{width: '100%', height: '100%'}}
+            onPress={() => {console.log(this.etcModalRef.current.showOrHide()); }}>
+            <Image source={require('../assets/icon/icon_etc.png')} style={{width: 30, height: 30}}></Image>
+          </TouchableOpacity>
+        </View>
+
         {/* 主工作台 */}
         <View style={styles.workspace_controller}>
           <View style={{width: '100%'}}>
@@ -769,13 +786,13 @@ export default class WorkSpacePage extends Component {
               ref={this.modeContainerRef}>
 
               {/* 模式一 */}
-              <View style={{width: Dimensions.get('window').width, height: '100%', bottom: 0}}>
+              <View style={[{width: Dimensions.get('window').width, height: '100%'}, styles.custom_flexCenter]}>
                 {
                   this._renderDisplayImg()
                 }
               </View>
               {/* 模式二 */}
-              <View style={{width: Dimensions.get('window').width, position: 'relative'}}>
+              <View style={[{width: Dimensions.get('window').width, height: '100%'}, styles.custom_flexCenter]}>
                 {
                   this._renderDisplayImgMulti()
                 }
@@ -825,6 +842,10 @@ export default class WorkSpacePage extends Component {
           selectContentImgByAlbumMulti={this._selectContentImgByAlbumMulti.bind(this)}>
         </ChooseContentInModel>
 
+
+        {/* 更多选项（分享、保存等按钮） */}
+        <EtcModal ref={this.etcModalRef}></EtcModal>
+
       </View>
     )
   }
@@ -843,26 +864,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: '100%',
   },
-  icon_contentFromCamera: {
-    width: 40,
-    height: 40,
-    marginRight: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 25,
-    zIndex: 100,
+  icon_save: {
+    position: 'absolute',
+    top: 12,
+    right: 15,
+    zIndex: 999,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     display: 'flex',
-    justifyContent:'center',
-    alignItems: 'center',
-  },
-  icon_contentFromAlbum: {
-    width: 40,
-    height: 40,
-    marginRight: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 25,
-    zIndex: 100,
-    display: 'flex',
-    justifyContent:'center',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   modeNavi: {

@@ -94,6 +94,17 @@ export default class MultiTransferController extends React.Component{
     this.hide()
   }
 
+
+
+  // 切换导航清空数据
+  clearUserData() {
+    let { styleIndexSelectedMulti } = this.state;
+    styleIndexSelectedMulti = [];
+    this.setState({styleIndexSelectedMulti});
+  }
+
+
+
   // 渲染当前选定、正在操控程度设置的预览图
   _renderCurrentRatioConcerned() {
     const { styleIndexSelectedMulti, styleList } = this.state;
@@ -263,26 +274,32 @@ export default class MultiTransferController extends React.Component{
 
 
   render() {
+    const { styleList, styleIndexSelectedMulti, currentRatioConcernedIndex, styleRatioList } = this.state;
     return (
       <Animated.View
         style={[styles.modalBox, {
           width: '100%',
           bottom: this.state.offset.interpolate({
             inputRange: [0, 1],
-            outputRange: [-220, 0]
+            outputRange: [-230, 0]
           })
         }]}>
 
         {/* 执行风格化按钮 */}
         <TouchableOpacity
-          style={{position: 'absolute', bottom: 210, right: 10, width: 40, height: 20, borderRadius: 10, backgroundColor: 'rgb(156,220,254)'}}
+          style={styles.btn_stylize}
           onPress={() => this.updateStylizeMulti(this.state.styleIndexSelectedMulti, this.state.styleRatioList)}>
           <Text>执行</Text>
         </TouchableOpacity>
 
         {/* 程度控制条 */}
         <View style={{position: 'absolute', bottom: 175, width: '100%'}}>
-          <Text style={{color: '#fff', marginLeft: 20, fontSize: 10, position: 'absolute', top: -12, left: 40}}>风格化程度</Text>
+          <Text style={styles.text_currentConcerned}>
+            {currentRatioConcernedIndex >= 0 && styleList[currentRatioConcernedIndex].selected ? '风格化程度：' + styleList[currentRatioConcernedIndex].name : '还没有选定风格！'}
+          </Text>
+          <Text style={{position: 'absolute', right: 40, color: '#fff', fontSize: 12, top: -13}}>
+            {currentRatioConcernedIndex >= 0 && styleList[currentRatioConcernedIndex].selected ? styleRatioList[styleIndexSelectedMulti.indexOf(currentRatioConcernedIndex)] + '%' : ''}
+          </Text>
           
           {/* 风格比例面板按钮 */}
           <TouchableOpacity style={styles.current_ratio_concerned} onPress={() => this.multiStyleRatioPanelRef.current.showOrHide()}>
@@ -378,7 +395,9 @@ export default class MultiTransferController extends React.Component{
             style={{position: 'absolute', right: 0, display: 'flex', alignItems: 'center', justifyContent:'center', top: 10, right: 10, zIndex: 100}}>
             <Image source={require('../../assets/icon/icon_close.png')} style={{width: 15, height: 15}}></Image>
           </TouchableOpacity>
-          <Text style={[styles.multi_style_ratio_panel_text, {marginTop: 8, textAlign: 'center', fontSize: 12}]}>风格比例面板（{this.state.styleIndexSelectedMulti.length}）</Text>
+          <Text style={[styles.multi_style_ratio_panel_text, {marginTop: 8, textAlign: 'center', fontSize: 12}]}>
+            风格比例面板（{this.state.styleIndexSelectedMulti.length}
+          </Text>
 
           <ScrollView
             style={{ margin: 10}}>
@@ -458,6 +477,23 @@ const styles = StyleSheet.create({
   multi_style_ratio_panel_text: {
     color: '#000',
     fontSize: 11,
+  },
+  btn_stylize: {
+    position: 'absolute',
+    bottom: 210,
+    right: 10,
+    width: 40,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgb(156,220,254)'
+  },
+  text_currentConcerned: {
+    color: '#fff',
+    marginLeft: 20,
+    fontSize: 10,
+    position: 'absolute',
+    top: -12,
+    left: 40
   }
 })
 
