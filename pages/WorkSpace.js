@@ -172,9 +172,22 @@ export default class WorkSpacePage extends Component {
 
   // 切换模式时重置一些必要的数据
   _clearUserData() {
-    const { styleList } = this.state;
+    let {
+      styleList,
+      selectedContentImg,
+      selectedContentImgMulti,
+      styleIndexSelectedMuti,
+      displayImg,
+      displayImgMutil
+    } = this.state;
     styleList.map((item) => {item.selected = false});
-    this.setState({styleList});
+    selectedContentImg = '',
+    selectedContentImgMulti = '',
+    styleIndexSelectedMuti = [],
+    displayImg = '',
+    displayImgMutil = ''
+
+    this.setState({styleList, selectedContentImg, selectedContentImgMulti, styleIndexSelectedMuti, displayImg, displayImgMutil});
   }
 
 
@@ -434,8 +447,27 @@ export default class WorkSpacePage extends Component {
     })
     this.forceUpdate() // 强制结束一个生命周期，重新渲染生效后的displayImg
   }
-  async _updateStylizeMulti() {
+  async _updateStylizeMulti(selectedIndexList, ratioList) {
+    let {state} = this;
+    if (state.isLoading) return;
+    // 多风格风格化
+    let content = await resizeImage(state.contentImgMulti.url, 400)
+      .catch(err => console.log('err'))
+    content = content.base64;
 
+    let styles = [];
+    for (let i = 0; i < selectedIndexList.length; i++) {
+      let temp = await resizeImage(state.styleList[selectedIndexList[i]].url, 400);
+      temp = temp.base64
+      styles.push(temp);
+    }
+
+    let resultImage = await this.stylizeMulti(content, styles, ratioList).catch(err => console.log(err))
+    this.setState({
+      displayImgMutil: resultImage,
+      imgTransferredMulti: true
+    })
+    this.forceUpdate() // 强制结束一个生命周期，重新渲染生效后的displayImg
   }
 
 
@@ -451,9 +483,20 @@ export default class WorkSpacePage extends Component {
     tf.dispose([contentTensor, styleTensor, stylizedResult]);
     return stylizedImage;
   }
-  async stylizeMulti() {
-
+  async stylizeMulti(content, styles, ratioList) {
+    const contentTensor = await base64ImageToTensor(content);
+    let styleTensorList = [];
+    for (let i = 0; i < styles.length; i++) {
+      let temp = await base64ImageToTensor(styles[i]);
+      styleTensorList.push(temp);
+    }
+    const stylizedResult = await this.styler.combine(
+      styleTensorList, contentTensor, ratioList);
+    const stylizedImage = await tensorToImageUrl(stylizedResult);
+    return stylizedImage;
   }
+
+
 
   // 从相册上传风格图
   _selectStyleImg() {
@@ -725,12 +768,13 @@ export default class WorkSpacePage extends Component {
               style={{width: '100%', display: 'flex', bottom: 0}}
               ref={this.modeContainerRef}>
 
+              {/* 模式一 */}
               <View style={{width: Dimensions.get('window').width, height: '100%', bottom: 0}}>
                 {
                   this._renderDisplayImg()
                 }
               </View>
-
+              {/* 模式二 */}
               <View style={{width: Dimensions.get('window').width, position: 'relative'}}>
                 {
                   this._renderDisplayImgMulti()

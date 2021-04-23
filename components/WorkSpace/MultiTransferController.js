@@ -276,7 +276,7 @@ export default class MultiTransferController extends React.Component{
         {/* 执行风格化按钮 */}
         <TouchableOpacity
           style={{position: 'absolute', bottom: 210, right: 10, width: 40, height: 20, borderRadius: 10, backgroundColor: 'rgb(156,220,254)'}}
-          onPress={() => this.updateStylizeMulti()}>
+          onPress={() => this.updateStylizeMulti(this.state.styleIndexSelectedMulti, this.state.styleRatioList)}>
           <Text>执行</Text>
         </TouchableOpacity>
 

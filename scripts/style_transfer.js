@@ -98,7 +98,6 @@ export class StyleTranfer {
         console.log(typeof(styleBottleneckScaled))
         const identityBottleneckScaled = identityBottleneck.mul(tf.scalar(1.0-styleRatio));
         console.log('addstrict函数的意义：')
-        console.log
         return styleBottleneckScaled.add(identityBottleneckScaled)
       })
       styleBottleneck.dispose();
@@ -111,5 +110,48 @@ export class StyleTranfer {
     const end = Date.now();
     console.log('stylization scheduled', end - start);
     return stylized;
+  }
+
+
+  async combine(styleList, contentImage, ratioList) {
+    const start = Date.now();
+    // let styleRepresentation = await this.predictStyleParameters(styleImage);
+
+    // 程度化处理
+    const ratioSum = ratioList.reduce((prev, next, index, ratioList) => {
+      return prev + next;
+    })
+    let tempSum = 0;
+    let bottleneckList = [];
+    let castRatioList = [];
+    for (let i = 0; i < ratioList.length; i++) {
+      const bottleneck = await this.predictStyleParameters(styleList[i]);
+      bottleneckList.push(bottleneck);
+
+      if (i === ratioList.length - 1) {
+        castRatioList[i] = 1 - tempSum;
+      } else {
+        const ratio = parseFloat((ratioList[i] / ratioSum).toFixed(2));
+        castRatioList[i] = ratio
+        tempSum += ratio;
+      }
+    }
+
+    console.log('比风格例：' + castRatioList);
+    let combinedBottleneck = bottleneckList[0].mul(tf.scalar(castRatioList[0]));
+    for (let i = 1; i < bottleneckList.length; i++) {
+      const scaledBottleneck = bottleneckList[i].mul(tf.scalar(castRatioList[i]));
+      combinedBottleneck.add(scaledBottleneck);
+    }
+
+    const combinedStyle = await tf.tidy(() => {
+      return combinedBottleneck
+    })
+    const stylized = await this.produceStylized(contentImage, combinedStyle);
+    tf.dispose([combinedBottleneck, combinedStyle, bottleneckList]);
+    const end = Date.now();
+    console.log('stylization combining scheduled', end - start);
+    return stylized;
+    return 1;
   }
 }
