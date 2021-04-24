@@ -844,7 +844,17 @@ export default class WorkSpacePage extends Component {
 
 
         {/* 更多选项（分享、保存等按钮） */}
-        <EtcModal ref={this.etcModalRef}></EtcModal>
+        <EtcModal ref={this.etcModalRef}>
+          <View style={styles.etc_item}>
+            <Text style={{color: '#fff'}}>保存到相册</Text>
+          </View>
+          <View style={styles.etc_item}>
+            <Text>分享</Text>
+          </View>
+          <View style={styles.etc_item}>
+            <Text>暂存到工作台</Text>
+          </View>
+        </EtcModal>
 
       </View>
     )

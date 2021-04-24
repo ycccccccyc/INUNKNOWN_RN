@@ -396,7 +396,7 @@ export default class MultiTransferController extends React.Component{
             <Image source={require('../../assets/icon/icon_close.png')} style={{width: 15, height: 15}}></Image>
           </TouchableOpacity>
           <Text style={[styles.multi_style_ratio_panel_text, {marginTop: 8, textAlign: 'center', fontSize: 12}]}>
-            风格比例面板（{this.state.styleIndexSelectedMulti.length}
+            风格比例面板（{this.state.styleIndexSelectedMulti.length}）
           </Text>
 
           <ScrollView

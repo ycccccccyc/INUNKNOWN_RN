@@ -80,6 +80,18 @@ export default class EtcModal extends React.Component {
     this.out()
   }
 
+  _saveToLocal() {
+
+  }
+
+  _saveToTemp() {
+
+  }
+
+  _share() {
+
+  }
+
   render() {
     const offsetLeft = this.state.mode === 0 ? 5 : Dimensions.get('window').width - 205;
     return (
@@ -87,21 +99,39 @@ export default class EtcModal extends React.Component {
         style={[styles.etc_modal, {
           height: this.state.panelHeight.interpolate({
             inputRange: [0, 1],
-            outputRange: [0, 100]
+            outputRange: [0, 108]
           }),
         }]}>
-          {
-            this.state.show ?         <View style={styles.etc_item}>
-              <Text style={{color: '#fff'}}>保存到相册</Text>
-            </View> : null
-          }
-
-        <View style={styles.etc_item}>
-          <Text>分享</Text>
-        </View>
-        <View style={styles.etc_item}>
-          <Text>暂存到工作台</Text>
-        </View>
+        <TouchableHighlight
+          style={[styles.etc_item, {marginTop: 8}]}
+          activeOpacity={0.6}
+          underlayColor="#eee"
+          onPress={() => this._saveToLocal()}>
+            <View style={{width: '100%'}}>
+              <Image source={require('../../assets/icon/icon_save.png')} style={{width: 20, height: 20, position: 'absolute', left: 5, opacity: 0.6}}></Image>
+              <Text style={[styles.etc_modal_text, {marginLeft: 30}]}>保存到相册</Text>
+            </View>
+        </TouchableHighlight>
+        <TouchableHighlight
+          style={styles.etc_item}
+          activeOpacity={0.6}
+          underlayColor="#eee"
+          onPress={() => this._share()}>
+            <View style={{width: '100%'}}>
+              <Image source={require('../../assets/icon/icon_share.png')} style={{width: 20, height: 20, position: 'absolute', left: 6, opacity: 0.6}}></Image>
+              <Text style={[styles.etc_modal_text, {marginLeft: 30}]}>分享</Text>
+            </View>
+        </TouchableHighlight>
+        <TouchableHighlight
+          style={[styles.etc_item, {borderBottomWidth: 0, marginBottom: 8}]}
+          activeOpacity={0.6}
+          underlayColor="#eee"
+          onPress={() => this._saveToTemp()}>
+            <View style={{width: '100%'}}>
+              <Image source={require('../../assets/icon/workspace_inactive.png')} style={{width: 20, height: 20, position: 'absolute', left: 6, opacity: 0.8}}></Image>
+              <Text style={[styles.etc_modal_text, {marginLeft: 30}]}>暂存到工作台</Text>
+            </View>
+        </TouchableHighlight>
       </Animated.View>
     );
   }
@@ -110,42 +140,29 @@ export default class EtcModal extends React.Component {
 const styles = StyleSheet.create({
   etc_modal: {
     width: 120,
-    height: 90,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    height: 0,
+    backgroundColor: 'rgba(255, 255, 255, 1)',
     position: 'absolute',
     top: 45,
-    right: 5,
+    right: 2,
     borderRadius: 5,
-    paddingLeft: 10,
-    paddingRight: 10,
+    overflow: 'hidden',
   },
-  // tri_decoration: {
-  //   position: 'absolute',
-  //   width: 0,
-  //   height: 0,
-  //   right: 10,
-  //   top: -5,
-  //   zIndex: 9999,
-  //   borderBottomWidth: 10,
-  //   borderLeftWidth: 10,
-  //   borderRightWidth: 10,
-  //   borderBottomColor: '#fff',
-  //   borderLeftColor: 'rgba(255, 0, 0, 1)',
-  //   borderRightColor: 'rgba(255, 0, 0, 1)',
-  // },
   etc_item: {
-    width: '100%',
     height: 30,
-    borderBottomColor: '#999',
+    borderBottomColor: '#eee',
     borderBottomWidth: 1,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    color: '#fff'
+    color: '#fff',
+    marginLeft: 5,
+    marginRight: 5
   },
   etc_modal_text: {
-    color: '#fff',
-    fontSize: 11,
-    marginBottom: 5
+    color: '#777',
+    fontSize: 13,
+    marginBottom: 5,
+    textAlign: 'left'
   }
 })
