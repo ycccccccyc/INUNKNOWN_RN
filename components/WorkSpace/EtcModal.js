@@ -14,9 +14,9 @@ import {
   Animated,
   FlatList,
   Easing,
-  Slider
+  Slider,
+  Platform,
 } from 'react-native';
-
 
 export default class EtcModal extends React.Component {
   constructor(props) {
@@ -27,7 +27,11 @@ export default class EtcModal extends React.Component {
       panelWidth: new Animated.Value(0),
       mode: this.props.mode,
     }
+
+    this.saveImage = this.props.saveImage;
   }
+
+
 
   in() {
     Animated.timing(
@@ -80,9 +84,6 @@ export default class EtcModal extends React.Component {
     this.out()
   }
 
-  _saveToLocal() {
-
-  }
 
   _saveToTemp() {
 
@@ -106,7 +107,7 @@ export default class EtcModal extends React.Component {
           style={[styles.etc_item, {marginTop: 8}]}
           activeOpacity={0.6}
           underlayColor="#eee"
-          onPress={() => this._saveToLocal()}>
+          onPress={() => this.saveImage()}>
             <View style={{width: '100%'}}>
               <Image source={require('../../assets/icon/icon_save.png')} style={{width: 20, height: 20, position: 'absolute', left: 5, opacity: 0.6}}></Image>
               <Text style={[styles.etc_modal_text, {marginLeft: 30}]}>保存到相册</Text>
@@ -132,6 +133,7 @@ export default class EtcModal extends React.Component {
               <Text style={[styles.etc_modal_text, {marginLeft: 30}]}>暂存到工作台</Text>
             </View>
         </TouchableHighlight>
+        {this.props.children}
       </Animated.View>
     );
   }

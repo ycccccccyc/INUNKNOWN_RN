@@ -13,7 +13,8 @@ import {
   ActivityIndicator,
   Animated,
   FlatList,
-  Slider
+  Slider,
+  PermissionsAndroid
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -23,7 +24,7 @@ import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import {StyleTranfer} from '../scripts/style_transfer';
 import {imageToBase64, base64ImageToTensor, tensorToImageUrl, resizeImage, toDataUri} from '../scripts/image_utils';
-
+import fetch_blob from 'react-native-fetch-blob';
 
 import ChooseContentInModel from '../components/Modal/ChooseContentInModel';
 import SingleTransferController from '../components/WorkSpace/SingleTransferController';
@@ -31,8 +32,10 @@ import MultiTransferController from '../components/WorkSpace/MultiTransferContro
 import EtcModal from '../components/WorkSpace/EtcModal';
 
 import styleList from '../constant/styleList'
+import CameraRoll from '@react-native-community/cameraroll';
 
-
+const RNFS = require('react-native-fs'); //文件处理
+const storeLocation = `${RNFS.DocumentDirectoryPath}`;
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 
@@ -107,16 +110,8 @@ export default class WorkSpacePage extends Component {
         height: 0
       },
       // 展示的图
-      displayImg: {
-        url: '',
-        width: 0,
-        height: 0
-      },
-      displayImgMutil: {
-        url: '',
-        width: 0,
-        height: 0
-      },
+      displayImg: '',
+      displayImgMulti: '',
       // 默认风格列表
       styleList: styleList,
 
@@ -169,6 +164,23 @@ export default class WorkSpacePage extends Component {
     this.etcModalRef = React.createRef();
 
   }
+
+  _getStoragePermission = async () => {
+    try {
+        const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            {
+                title: "My App Storage Permission",
+                message: "My App needs access to your storage " +
+                    "so you can save your photos",
+            },
+        );
+        return granted;
+    } catch (err) {
+        console.error("Failed to request permission ", err);
+        return null;
+    }
+  };
 
 
   // 切换模式时重置一些必要的数据
@@ -471,7 +483,7 @@ export default class WorkSpacePage extends Component {
 
     let resultImage = await this.stylizeMulti(content, styles, ratioList).catch(err => console.log(err))
     this.setState({
-      displayImgMutil: resultImage,
+      displayImgMulti: resultImage,
       imgTransferredMulti: true
     })
     this.forceUpdate() // 强制结束一个生命周期，重新渲染生效后的displayImg
@@ -483,7 +495,6 @@ export default class WorkSpacePage extends Component {
     const contentTensor = await base64ImageToTensor(contentImage);
     const styleTensor = await base64ImageToTensor(styleImage);
     console.log('-------------------------------')
-    console.log(!!contentImage, !!styleImage)
     const stylizedResult = await this.styler.stylize(
       styleTensor, contentTensor, ratio);
     const stylizedImage = await tensorToImageUrl(stylizedResult);
@@ -633,7 +644,7 @@ export default class WorkSpacePage extends Component {
     const showH = width > screenW ? screenW * height / width : height;
 
     return (
-      <Image source={{ uri: toDataUri(this.state.displayImgMutil) }} style={{width: showW, height: showH}}></Image>
+      <Image source={{ uri: toDataUri(this.state.displayImgMulti) }} style={{width: showW, height: showH}}></Image>
     )
   }
 
@@ -720,6 +731,32 @@ export default class WorkSpacePage extends Component {
       hasCameraPermission: status === 'granted',
       isLoading: false
     })
+
+    await this._getStoragePermission();
+  }
+
+
+
+  _saveImage() {
+    const {displayImg, displayImgMulti, transferMode} = this.state;
+    if (!displayImg) {
+      console.log('没有可保存的图片');
+      return;
+    }
+    let pathName = "INUNKNOWN制作" + new Date().getTime() + ".png"
+    let downloadDest = `${storeLocation}/${pathName}`;
+    const res = RNFS.downloadFile({fromUrl: displayImg.base64, toFile:downloadDest});
+    res.promise.then(res => {
+      console.log('okkkk');
+      // if(res && res.statusCode === 200){
+      //     var promise = CameraRoll.save("file://" + downloadDest);
+      //     promise.then(function(result) {
+      //         console.log("图片已保存至相册")
+      //     }).catch(function(error) {
+      //         console.log(error)
+      //     })
+      // }
+    }).catch((err) => console.log('不ok，' + err))
   }
 
   render() {
@@ -768,7 +805,7 @@ export default class WorkSpacePage extends Component {
         <View style={styles.icon_save}>
           <TouchableOpacity
             style={{width: '100%', height: '100%'}}
-            onPress={() => {console.log(this.etcModalRef.current.showOrHide()); }}>
+            onPress={() => {this.etcModalRef.current.showOrHide() }}>
             <Image source={require('../assets/icon/icon_etc.png')} style={{width: 30, height: 30}}></Image>
           </TouchableOpacity>
         </View>
@@ -844,17 +881,11 @@ export default class WorkSpacePage extends Component {
 
 
         {/* 更多选项（分享、保存等按钮） */}
-        <EtcModal ref={this.etcModalRef}>
-          <View style={styles.etc_item}>
-            <Text style={{color: '#fff'}}>保存到相册</Text>
-          </View>
-          <View style={styles.etc_item}>
-            <Text>分享</Text>
-          </View>
-          <View style={styles.etc_item}>
-            <Text>暂存到工作台</Text>
-          </View>
-        </EtcModal>
+        <EtcModal
+          ref={this.etcModalRef}
+          resultImage={this.state.transferMode === 0 ? this.state.displayImg : this.state.displayImgMulti}
+          saveImage={this._saveImage.bind(this)}>
+          </EtcModal>
 
       </View>
     )
