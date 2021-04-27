@@ -40,21 +40,21 @@ const tabIconConfig = ({ route }) => ({
         icon = focused ? (
           <Image
             source={require('../assets/icon/homepage_active.png')}
-            style={{width: 25, height: 25}}/>
+            style={{width: 28, height: 28}}/>
         ) : (
           <Image
             source={require('../assets/icon/homepage_inactive.png')}
-            style={{width: 25, height: 25}}/>
+            style={{width: 28, height: 28}}/>
         )
         break;
       case 'MaterialPage':
         icon = focused ? (
           <Image
-            source={require('../assets/icon/workspace_active.png')}
+            source={require('../assets/icon/material_active.png')}
             style={{width: 28, height: 28}}/>
         ) : (
           <Image
-            source={require('../assets/icon/workspace_inactive.png')}
+            source={require('../assets/icon/material_inactive.png')}
             style={{width: 28, height: 28}}/>
         )
         break;
@@ -92,15 +92,43 @@ const tabIconConfig = ({ route }) => ({
       return (
         <View
           style={styles.work_space_icon}
-          // onPress={() => { console.log('aaaaa'); ChooseContentInModel.show() }}
-          // onPress={() => navigation.navigate('WorkSpace', {navigation: navigation})}
         >
+          <Image source={require('../assets/icon/icon_workspace.png')} style={{width: 40, height: 40}}></Image>
         </View>
       )
     }
-    return (
-      <Text style={{color: '#000', fontSize: 11}}>啊啊啊</Text>
-    )
+    let label;
+    switch (route.name) {
+      case 'Community':
+        label = focused ? (
+          <Text style={{color: '#000', fontSize: 11, color: '#1296db'}}>社区</Text>
+        ) : (
+          <Text style={{color: '#000', fontSize: 11, color: '#333'}}>社区</Text>
+        )
+        break;
+      case 'MaterialPage':
+        label = focused ? (
+          <Text style={{color: '#000', fontSize: 11, color: '#1296db'}}>素材</Text>
+        ) : (
+          <Text style={{color: '#000', fontSize: 11, color: '#333'}}>素材</Text>
+        )
+        break;
+      case 'FavoritePage':
+        label = focused ? (
+          <Text style={{color: '#000', fontSize: 11, color: '#1296db'}}>赞过</Text>
+        ) : (
+          <Text style={{color: '#000', fontSize: 11, color: '#333'}}>赞过</Text>
+        )
+        break;
+      case 'MyPage':
+        label = focused ? (
+          <Text style={{color: '#000', fontSize: 11, color: '#1296db'}}>我的</Text>
+        ) : (
+          <Text style={{color: '#000', fontSize: 11, color: '#333'}}>我的</Text>
+        )
+        break;
+    }
+    return label
   }
 })
 
@@ -118,21 +146,24 @@ export default function TabScreen() {
   )
 }
 
-const styles = {
+const styles = StyleSheet.create({
   work_space_icon: {
     width: 70,
     height: 70,
     borderRadius: 40,
     position: 'relative',
     top: -5,
-    backgroundColor: '#f00',
+    backgroundColor: '#fff',
     borderStyle: 'solid',
-    borderColor: '#fff',
+    borderColor: '#ccc',
     borderWidth: 3,
     elevation: 10,
     shadowColor: 'black',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 5,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   }
-}
+})

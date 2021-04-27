@@ -24,21 +24,23 @@ import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import {StyleTranfer} from '../scripts/style_transfer';
 import {imageToBase64, base64ImageToTensor, tensorToImageUrl, resizeImage, toDataUri} from '../scripts/image_utils';
-import fetch_blob from 'react-native-fetch-blob';
+import RNFetchBlob from 'react-native-fetch-blob';
 
 import ChooseContentInModel from '../components/Modal/ChooseContentInModel';
 import SingleTransferController from '../components/WorkSpace/SingleTransferController';
 import MultiTransferController from '../components/WorkSpace/MultiTransferController';
 import EtcModal from '../components/WorkSpace/EtcModal';
+import SaveSucceedModal from '../components/Modal/SaveSucceedModal';
+import AddFramePage from './AddFramePage';
+import ModifyPage from './ModifyPage';
+import ResizeImagePage from './ResizeImagePage';
 
 import styleList from '../constant/styleList'
 import CameraRoll from '@react-native-community/cameraroll';
+import RNFS from 'react-native-fs'; //文件处理
 
-const RNFS = require('react-native-fs'); //文件处理
-const storeLocation = `${RNFS.DocumentDirectoryPath}`;
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
-
 
 class ModeNaviHandler extends React.Component {
   constructor(props) {
@@ -162,6 +164,10 @@ export default class WorkSpacePage extends Component {
     this.mode1ControllerRef = React.createRef();
     this.mode2ControllerRef = React.createRef();
     this.etcModalRef = React.createRef();
+    this.saveSucceedModal = React.createRef();
+    this.addFramePageRef = React.createRef();
+    this.modifyPageRef = React.createRef();
+    this.resizeImagePageRef = React.createRef();
 
   }
 
@@ -648,8 +654,6 @@ export default class WorkSpacePage extends Component {
     )
   }
 
-
-
   _renderDisplayImg() {
     const {selectedContentImg, imgTransferred} = this.state;
     console.log(selectedContentImg, imgTransferred)
@@ -706,7 +710,6 @@ export default class WorkSpacePage extends Component {
     this._clearUserData()
   }
 
-
   // 弹出选择内容图输入方式的弹窗
   _showChooseContentInModel() {
     console.log('change content image')
@@ -714,6 +717,19 @@ export default class WorkSpacePage extends Component {
     this.setState({
       showChooseContentInModel: true
     })
+  }
+
+  // 微调页面
+  _showModifyPage() {
+    this.modifyPageRef.current.show();
+  }
+  // 裁剪页面
+  _showResizeImagePage() {
+    this.resizeImagePageRef.current.show();
+  }
+  // 添加画框页面
+  _showAddFramePage() {
+    this.addFramePageRef.current.show();
   }
 
 
@@ -736,27 +752,45 @@ export default class WorkSpacePage extends Component {
   }
 
 
-
+  // 保存图片
   _saveImage() {
     const {displayImg, displayImgMulti, transferMode} = this.state;
-    if (!displayImg) {
-      console.log('没有可保存的图片');
-      return;
+    let saveImage;
+    if (transferMode === 0) {
+      if (!displayImg) {
+        Alert.alert('没有可保存的成品图片~去制作8！')
+        return;
+      }
+      saveImage = displayImg;
+    } else {
+      if (!displayImgMulti) {
+        console.log('没有可保存的成品图片~去制作8！');
+        return;
+      }
+      saveImage = displayImgMulti;
     }
-    let pathName = "INUNKNOWN制作" + new Date().getTime() + ".png"
-    let downloadDest = `${storeLocation}/${pathName}`;
-    const res = RNFS.downloadFile({fromUrl: displayImg.base64, toFile:downloadDest});
-    res.promise.then(res => {
-      console.log('okkkk');
-      // if(res && res.statusCode === 200){
-      //     var promise = CameraRoll.save("file://" + downloadDest);
-      //     promise.then(function(result) {
-      //         console.log("图片已保存至相册")
-      //     }).catch(function(error) {
-      //         console.log(error)
-      //     })
-      // }
-    }).catch((err) => console.log('不ok，' + err))
+    const time = new Date();
+    let pathName = "INUNKNOWN_stylized" + time.getFullYear() + time.getMonth() + time.getDate() + time.getHours() + time.getMinutes() + time.getSeconds() + Math.floor(Math.random() * 1000)
+    const dirs = Platform.OS === 'ios' ? RNFS.LibraryDirectoryPath : RNFS.ExternalDirectoryPath; // 外部文件，共享目录的绝对路径（仅限android）
+    const downloadDest = `${dirs}/${pathName}.png`;
+    const imageDatas = saveImage.split('data:image/png;base64,');
+    const imageData = imageDatas[0];
+
+    RNFetchBlob.fs.writeFile(downloadDest, imageData, 'base64').then((rst) => {
+      console.log('writeFile',downloadDest)
+      try {
+        CameraRoll.save(downloadDest).then((e1) => {
+          console.log('suc',e1)
+          // Alert.alert('图片已存到相册！')
+          this.saveSucceedModal.current.show(transferMode === 0 ? toDataUri(displayImg) : toDataUri(displayImgMulti));
+          // success && success()
+        }).catch((e2) => {
+          console.log('发生错误', e2)
+        })
+      } catch (e3) {
+        // fail && fail()
+      }
+    });
   }
 
   render() {
@@ -801,7 +835,7 @@ export default class WorkSpacePage extends Component {
           </ModeNaviHandler>
         </View>
 
-        {/* 保存按钮 */}
+        {/* 保存等按钮 */}
         <View style={styles.icon_save}>
           <TouchableOpacity
             style={{width: '100%', height: '100%'}}
@@ -834,8 +868,6 @@ export default class WorkSpacePage extends Component {
                   this._renderDisplayImgMulti()
                 }
               </View>
-
-
             </ScrollView>
           </View>
 
@@ -847,11 +879,15 @@ export default class WorkSpacePage extends Component {
         </View>
 
 
+        {/* 底部控制台 */}
         {/* 模式1：单一对单一模式 设置以及预置风格栏 */}
         <SingleTransferController
           _updateStylize={this._updateStylize.bind(this)}
           _renderStylePreview={this._renderStylePreview.bind(this)}
           _showChooseContentInModel={this._showChooseContentInModel.bind(this)}
+          _showModifyPage={this._showModifyPage.bind(this)}
+          _showResizeImagePage={this._showResizeImagePage.bind(this)}
+          _showAddFramePage={this._showAddFramePage.bind(this)}
           styleList={this.state.styleList}
           isLoading={this.state.isLoading}
           style={{width: '100%', position: 'absolute'}}
@@ -862,6 +898,9 @@ export default class WorkSpacePage extends Component {
           _showChooseContentInModel={this._showChooseContentInModel.bind(this)}
           _selectStyleImg={this._selectStyleImg.bind(this)}
           _updateStylizeMulti={this._updateStylizeMulti.bind(this)}
+          _showModifyPage={this._showModifyPage.bind(this)}
+          _showResizeImagePage={this._showResizeImagePage.bind(this)}
+          _showAddFramePage={this._showAddFramePage.bind(this)}
           styleList={this.state.styleList}
           isLoading={this.state.isLoading}
           style={{width: '100%', position: 'absolute'}}
@@ -885,7 +924,30 @@ export default class WorkSpacePage extends Component {
           ref={this.etcModalRef}
           resultImage={this.state.transferMode === 0 ? this.state.displayImg : this.state.displayImgMulti}
           saveImage={this._saveImage.bind(this)}>
-          </EtcModal>
+        </EtcModal>
+
+        {/* 保存到相册成功弹窗 */}
+        <SaveSucceedModal
+          ref={this.saveSucceedModal}
+          savedImage={this.state.transferMode === 0 ? toDataUri(this.state.displayImg) : toDataUri(this.state.displayImgMulti)}
+          imageWidth={this.state.transferMode === 0 ? this.state.contentImg.width : this.state.contentImgMulti.width}
+          imageHeight={this.state.transferMode === 0 ? this.state.contentImg.height : this.state.contentImgMulti.height}>
+        </SaveSucceedModal>
+
+        {/* 裁剪页 */}
+        <ResizeImagePage
+          ref={this.resizeImagePageRef}>
+        </ResizeImagePage>
+
+        {/* 添加画框页面 */}
+        <AddFramePage
+          ref={this.addFramePageRef}>
+        </AddFramePage>
+
+        {/* 微调页面 */}
+        <ModifyPage
+          ref={this.modifyPageRef}>
+        </ModifyPage>
 
       </View>
     )

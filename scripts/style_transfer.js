@@ -152,6 +152,5 @@ export class StyleTranfer {
     const end = Date.now();
     console.log('stylization combining scheduled', end - start);
     return stylized;
-    return 1;
   }
 }

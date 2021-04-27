@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
-import { StyleSheet, Text, Image, View, TouchableOpacity, Animated, Easing, Dimensions } from 'react-native'
-import { TouchableHighlight } from 'react-native-gesture-handler'
+import { StyleSheet, Text, Image, View, TouchableOpacity, TouchableHighlight, Animated, Easing, Dimensions } from 'react-native'
 
 /**
  * 弹出层

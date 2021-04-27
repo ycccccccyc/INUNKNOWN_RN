@@ -30,6 +30,10 @@ export default class SingleTransferController extends React.Component{
     this.updateStylize = this.props._updateStylize
     this.renderStylePreview = this.props._renderStylePreview
     this.showChooseContentInModel = this.props._showChooseContentInModel
+    this.showModifyPage = this.props._showModifyPage
+    this.showResizeImagePage = this.props._showResizeImagePage
+    this.showAddFramePage = this.props._showAddFramePage
+
     this.styleList = this.props.styleList
 
     this.settingPanelRef = React.createRef();
@@ -155,6 +159,7 @@ export default class SingleTransferController extends React.Component{
           </ScrollView>
           {/* 底部按钮 */}
           <View style={{height: 30, width: '100%', position: 'absolute', bottom: 0, display: 'flex', flexDirection: 'row', borderTopWidth: 1, borderColor: '#ccc'}}>
+            
             <TouchableOpacity
               style={{flex: 1}}
               onPress={() => {if (!this.props.isLoading) this.showChooseContentInModel()}}>
@@ -163,18 +168,34 @@ export default class SingleTransferController extends React.Component{
                 <Text>图片</Text>
               </View>
             </TouchableOpacity>
-            <View style={[styles.custom_flexCenter, {flex: 1, textAlign: 'center', borderRightWidth: 1, borderColor: '#ddd'}]}>
-            <Image source={require('../../assets/icon/icon_cut.png')} style={{width: 23, height: 23}}></Image>
-              <Text>裁剪</Text>
-            </View>
-            <View style={[styles.custom_flexCenter, {flex: 1, textAlign: 'center', borderRightWidth: 1, borderColor: '#ddd'}]}>
-            <Image source={require('../../assets/icon/icon_board.png')} style={{width: 20, height: 20}}></Image>
-              <Text>画框</Text>
-            </View>
-            <View style={[styles.custom_flexCenter, {flex: 1, textAlign: 'center'}]}>
-            <Image source={require('../../assets/icon/icon_modify.png')} style={{width: 20, height: 20}}></Image>
-              <Text>微调</Text>
-            </View>
+
+            <TouchableOpacity
+              style={{flex: 1}}
+              onPress={() => {if (!this.props.isLoading) this.showResizeImagePage()}}>
+              <View style={[styles.custom_flexCenter, {flex: 1, textAlign: 'center', borderRightWidth: 1, borderColor: '#ddd'}]}>
+                <Image source={require('../../assets/icon/icon_cut.png')} style={{width: 23, height: 23}}></Image>
+                <Text>裁剪</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{flex: 1}}
+              onPress={() => {if (!this.props.isLoading) this.showAddFramePage()}}>
+              <View style={[styles.custom_flexCenter, {flex: 1, textAlign: 'center', borderRightWidth: 1, borderColor: '#ddd'}]}>
+                <Image source={require('../../assets/icon/icon_board.png')} style={{width: 20, height: 20}}></Image>
+                <Text>画框</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{flex: 1}}
+              onPress={() => {if (!this.props.isLoading) this.showModifyPage()}}>
+              <View style={[styles.custom_flexCenter, {flex: 1, textAlign: 'center'}]}>
+                <Image source={require('../../assets/icon/icon_modify.png')} style={{width: 20, height: 20}}></Image>
+                <Text>微调</Text>
+              </View>
+            </TouchableOpacity>
+
           </View>
         </View>
       </Animated.View>
