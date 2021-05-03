@@ -20,7 +20,12 @@
         "backgroundColor": "#FEF9B0"
       },
       "splash": {
-        "image": "./assets/images/splash.jpg",
+        "ldpi": "./assets/splash-screens/android/drawable-ldpi/splash.png",
+        "mdpi": "./assets/splash-screens/android/drawable-mdpi/splash.png",
+        "hdpi": "./assets/splash-screens/android/drawable-hdpi/splash.png",
+        "xhdpi": "./assets/splash-screens/android/drawable-xhdpi/splash.png",
+        "xxhdpi": "./assets/splash-screens/android/drawable-xxhdpi/splash.png",
+        "xxxhdpi": "./assets/splash-screens/android/drawable-xxxhdpi/splash.png",
         "resizeMode": "cover",
         "backgroundColor": "#FEF9B0"
       }
