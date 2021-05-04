@@ -54,7 +54,6 @@ export default class MultiTransferController extends React.Component{
         easing: Easing.linear,
         duration: 200,
         toValue: 1,
-        useNativeDriver: false
       }
     ).start()
   }
@@ -66,7 +65,6 @@ export default class MultiTransferController extends React.Component{
         easing: Easing.linear,
         duration: 200,
         toValue: 0,
-        useNativeDriver: false
       }
     ).start()
 
@@ -164,7 +162,7 @@ export default class MultiTransferController extends React.Component{
 
   _renderStylePreview(item, index) {
     // 首个：总是为添加
-    if (index === 0 && item.url.length === 0) return (
+    if (index === 0) return (
       <TouchableOpacity key={index}
         style={{marginRight: 10, backgroundColor: '#eee', width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 18}}
         onPress={() => this.selectStyleImg()}>

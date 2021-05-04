@@ -34,7 +34,7 @@ export default class MultiStyleRatioPanel extends React.Component {
       {
         easing: Easing.linear,
         duration: 200,
-        toValue: 1
+        toValue: 1,
       }
     ).start()
   }

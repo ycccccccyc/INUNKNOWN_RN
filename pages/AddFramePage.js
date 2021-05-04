@@ -32,7 +32,7 @@ export default class AddFramePage extends Component {
       {
         easing: Easing.linear,
         duration: 200,
-        toValue: 1
+        toValue: 1,
       }
     ).start()
   }
@@ -43,7 +43,7 @@ export default class AddFramePage extends Component {
       {
         easing: Easing.linear,
         duration: 200,
-        toValue: 0
+        toValue: 0,
       }
     ).start()
 

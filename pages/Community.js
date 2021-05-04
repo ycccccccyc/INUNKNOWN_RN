@@ -5,15 +5,21 @@ import {
     View,
     Button,
     TouchableOpacity,
-    Image
+    ScrollView,
+    Image,
+    Dimensions
 } from 'react-native';
-import services from '../services/common';
+import services from '../services/community';
 
-export default class Community extends Component  {
+const clientWidth = Dimensions.get('window').width;
+
+export default class Community extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      avatarUrl: null
+      layoutWidth: (clientWidth -45) / 2,
+      myBaseInfo: {},
+      imageList: []
     }
   }
 
@@ -22,23 +28,84 @@ export default class Community extends Component  {
     if (+res.code === 0 && res.data) {
       const { data } = res;
       this.setState({
-        avatarUrl: data.avatarUrl
-      })
+        myBaseInfo: data
+      }, () => this.forceUpdate())
     }
   }
 
-  componentWillMount() {
+  async getCommunityImageList() {
+    const res = await services.getCommunityImageList();
+    if (+res.code === 0 && res.data) {
+      const { data } = res;
+      this.setState({
+        imageList: data
+      }, () => this.forceUpdate())
+    }
+  }
+
+
+  _renderCommunityImage(item, index) {
+    return (
+      <View style={{display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: clientWidth, marginTop: index === 0 ? 20 : 40}} key={index}>
+        <View style={[styles.piece_container, {width: clientWidth - 40}]}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => this._showCommunityDetailPage(item)}>
+            <Image
+              source={{uri: item.imgUrl}}
+              style={{width: '100%', height: 220, borderTopRightRadius: 10, borderTopLeftRadius: 10}} />
+          </TouchableOpacity>
+          
+          <Text style={styles.font_imgName}>{item.imgName}</Text>
+          <View style={styles.introduction_container}>
+            <Text numberOfLines={2} style={{fontSize: 12, color: '#666'}}>{item.introduction}</Text>
+          </View>
+
+          <View style={{position: 'absolute', width: 30, height: 30, backgroundColor: '#f00'}}></View>
+        </View>
+
+      </View>
+    )
+  }
+
+
+  _showMyDrawer() {
+    // 点开头像
+  }
+
+
+
+  componentDidMount() {
     this.getBaseUserInfo();
+    this.getCommunityImageList();
+    console.log(this._showCommunityDetailPage);
   }
 
   render() {
+    const {state} = this;
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <View style={styles.top_bar}>
-          <View style={styles.avatar_Container}>
-            <Image />
-          </View>
+          <TouchableOpacity style={styles.avatar_Container} activeOpacity={0.6} onPress={() => this._showMyDrawer()}>
+            <Image
+              source={ state.myBaseInfo.avatarUrl ? { uri: state.myBaseInfo.avatarUrl } : require('../assets/images/avatar_default.jpg') }
+              style={{width: 42, height: 42, borderRadius: 20}} />
+            <Image
+              source={require('../assets/images/avatarDeco/sakura.png')} style={styles.avatar_deco} />
+          </TouchableOpacity>
         </View>
+
+        {/* 展示区 */}
+        <ScrollView
+          style={styles.community_main_container}
+          showsVerticleScrollIndicator={false}>
+          {
+            this.state.imageList.map((item, index) => this._renderCommunityImage(item, index))
+          }
+          <Text style={{textAlign: 'center', marginTop: 80, marginBottom: 40, opacity: 0.5, fontSize: 12}}>再也没有啦！</Text>
+        </ScrollView>
+
       </View>
     );
   }
@@ -51,7 +118,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    height: 50,
+    height: 53,
     backgroundColor: '#fff',
     marginBottom: 50,
     elevation: 10,
@@ -64,5 +131,44 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+    top: 6,
+    left: 10,
+  },
+  avatar_deco: {
+    width: 55,
+    height: 55,
+    position: 'absolute',
+    left: -8,
+    top: -6,
+  },
+  community_main_container: {
+    flexWrap:'wrap',
+    flexDirection:'row',
+    marginTop: 50,
+    flex: 1,
+    width: '100%',
+    paddingBottom: 40
+  },
+  piece_container: {
+    height: 300,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    elevation: 10,
+    shadowColor: '#eee',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 10,
+  },
+  font_imgName: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '900',
+    margin: 5,
+    marginLeft: 15,
+  },
+  introduction_container: {
+    fontSize: 10,
+    marginLeft: 15,
+    marginRight: 15
   }
 })

@@ -133,17 +133,23 @@ const tabIconConfig = ({ route }) => ({
 })
 
 
-export default function TabScreen() {
-  return (
-    <Tab.Navigator
-      screenOptions={tabIconConfig}>
-      <Tab.Screen name="Community" component={Community} options={tabBarVisibleOptionConfig} />
-      <Tab.Screen name="MaterialPage" component={MaterialPage} options={tabBarVisibleOptionConfig} />
-      <Tab.Screen name="WorkSpace" component={WorkSpace} options={tabBarVisibleOptionConfig} />
-      <Tab.Screen name="FavoritePage" component={FavoritePage} options={tabBarVisibleOptionConfig} />
-      <Tab.Screen name="MyPage" component={MyPage} options={tabBarVisibleOptionConfig} />
-    </Tab.Navigator>
-  )
+export default class TabScreen extends Component {
+  constructor(props) {
+    super(props)
+  }
+
+  render() {
+    return (
+      <Tab.Navigator
+        screenOptions={tabIconConfig}>
+        <Tab.Screen name="Community" component={Community} options={tabBarVisibleOptionConfig} _showCommunityDetailPage={this._showCommunityDetailPage}/>
+        <Tab.Screen name="MaterialPage" component={MaterialPage} options={tabBarVisibleOptionConfig} />
+        <Tab.Screen name="WorkSpace" component={WorkSpace} options={tabBarVisibleOptionConfig} />
+        <Tab.Screen name="FavoritePage" component={FavoritePage} options={tabBarVisibleOptionConfig} />
+        <Tab.Screen name="MyPage" component={MyPage} options={tabBarVisibleOptionConfig} />
+      </Tab.Navigator>
+    )
+  }
 }
 
 const styles = StyleSheet.create({

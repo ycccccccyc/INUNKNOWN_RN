@@ -35,9 +35,11 @@ import AddFramePage from './AddFramePage';
 import ModifyPage from './ModifyPage';
 import ResizeImagePage from './ResizeImagePage';
 
-import styleList from '../constant/styleList'
+// import styleList from '../constant/styleList'
 import CameraRoll from '@react-native-community/cameraroll';
 import RNFS from 'react-native-fs'; //文件处理
+
+import services from '../services/workspace';
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
@@ -61,7 +63,6 @@ class ModeNaviHandler extends React.Component {
       {
         toValue: 0,
         duration: 200,
-        useNativeDriver: false
       }
     ).start();
   }
@@ -72,7 +73,6 @@ class ModeNaviHandler extends React.Component {
       {
         toValue: 1,
         duration: 200,
-        useNativeDriver: false
       }
     ).start();
   }
@@ -115,7 +115,10 @@ export default class WorkSpacePage extends Component {
       displayImg: '',
       displayImgMulti: '',
       // 默认风格列表
-      styleList: styleList,
+      gotStyleList: false,
+      styleList: [],
+      imgFineness: 500,
+      styleFineness: 10,
 
       styleIndexSelected: 0,                    // 选择的风格图的下标
       styleIndexSelectedMuti: [],
@@ -459,10 +462,10 @@ export default class WorkSpacePage extends Component {
     let {state} = this;
     if (state.isLoading) return;
     // 风格化
-    let content = await resizeImage(state.contentImg.url, 400)
+    let content = await resizeImage(state.contentImg.url, state.imgFineness)
       .catch(err => console.log('err'))
     content = content.base64;
-    let style = await resizeImage(state.styleList[state.styleIndexSelected].url, 400);
+    let style = await resizeImage(state.styleList[state.styleIndexSelected].url, state.imgFineness);
     style = style.base64;
 
     let resultImage = await this.stylize(content, style, ratio).catch(err => console.log(err))
@@ -476,13 +479,13 @@ export default class WorkSpacePage extends Component {
     let {state} = this;
     if (state.isLoading) return;
     // 多风格风格化
-    let content = await resizeImage(state.contentImgMulti.url, 400)
+    let content = await resizeImage(state.contentImgMulti.url, state.styleFineness)
       .catch(err => console.log('err'))
     content = content.base64;
 
     let styles = [];
     for (let i = 0; i < selectedIndexList.length; i++) {
-      let temp = await resizeImage(state.styleList[selectedIndexList[i]].url, 400);
+      let temp = await resizeImage(state.styleList[selectedIndexList[i]].url, state.styleFineness);
       temp = temp.base64
       styles.push(temp);
     }
@@ -566,54 +569,7 @@ export default class WorkSpacePage extends Component {
     })
   }
 
-
-  // 渲染风格图预览
-  // 两种模式不太一样
-  _renderStylePreview(item, index) {
-    // 首个：总是为添加
-    if (index === 0 && item.url.length === 0) return (
-      <TouchableOpacity key={index}
-        style={{marginRight: 10, backgroundColor: '#eee', width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center'}}
-        onPress={() => this._selectStyleImg()}>
-        <Image source={require('../assets/images/stylesPreview/no_picture.png')} style={{width: 40, height: 40}}></Image>
-      </TouchableOpacity>
-    )
-    else if (!item.preset) return (
-      <View style={{marginRight: 10}} key={index}>
-        <TouchableOpacity  onPress={() => this._changeStyleSelected(index)}>
-          <Image source={{ uri: item.url }} style={{width: 80, height: 80}}></Image>
-        </TouchableOpacity>
-        
-        <View style={{position: 'absolute', bottom: 10, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.6)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
-          <Text style={{fontSize: 10}}>自定义风格</Text>
-        </View>
-        {
-          item.selected ? this._renderStyleSelectedFlag() : null
-        }
-      </View>
-    );
-    else return (
-      <View key={index} style={{marginRight: 10, position: 'relative'}}>
-        <TouchableOpacity onPress={() => this._changeStyleSelected(index)}>
-          <Image source={{uri: this.state.styleList[index].url}} style={{width: 80, height: 80}} />
-        </TouchableOpacity>
-        <View style={{position: 'absolute', bottom: 10, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.7)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
-          <Text style={{fontSize: 10}}>{item.name}</Text>
-        </View>
-        {
-          item.selected ? this._renderStyleSelectedFlag() : null
-        }
-      </View>
-    )
-  }
-  _renderStyleSelectedFlag() {
-    return (
-      <View style={{position: 'absolute', top: 0, zIndex: 100}}>
-        {/* <Text>得我</Text> */}
-        <Image source={require('../assets/images/stylesPreview/selected_flag.png')} style={{width: 30, height: 30, top: 20, left: 25}}></Image>
-      </View>
-    )
-  }
+  // 切换模式一风格图
   _changeStyleSelected(index) {
     let {styleList} = this.state;
 
@@ -734,6 +690,10 @@ export default class WorkSpacePage extends Component {
 
 
   async componentDidMount() {
+    // 准备数据
+    // 风格图片
+    await this._getStyleList();
+
     // Wait for tf to be ready.
     await tf.ready();
     // Signal to the app that tensorflow.js can now be used.
@@ -749,6 +709,17 @@ export default class WorkSpacePage extends Component {
     })
 
     await this._getStoragePermission();
+  }
+
+  async _getStyleList() {
+    const res = await services.getStyleList();
+    if (+res.code === 0 && res.data) {
+      const { data } = res;
+      this.setState({
+        styleList: data,
+        gotStyleList: true
+      }, () => this.forceUpdate())
+    }
   }
 
 
@@ -881,31 +852,39 @@ export default class WorkSpacePage extends Component {
 
         {/* 底部控制台 */}
         {/* 模式1：单一对单一模式 设置以及预置风格栏 */}
-        <SingleTransferController
-          _updateStylize={this._updateStylize.bind(this)}
-          _renderStylePreview={this._renderStylePreview.bind(this)}
-          _showChooseContentInModel={this._showChooseContentInModel.bind(this)}
-          _showModifyPage={this._showModifyPage.bind(this)}
-          _showResizeImagePage={this._showResizeImagePage.bind(this)}
-          _showAddFramePage={this._showAddFramePage.bind(this)}
-          styleList={this.state.styleList}
-          isLoading={this.state.isLoading}
-          style={{width: '100%', position: 'absolute'}}
-          ref={this.mode1ControllerRef}
-        />
-        {/* 模式2 */}
-        <MultiTransferController
-          _showChooseContentInModel={this._showChooseContentInModel.bind(this)}
-          _selectStyleImg={this._selectStyleImg.bind(this)}
-          _updateStylizeMulti={this._updateStylizeMulti.bind(this)}
-          _showModifyPage={this._showModifyPage.bind(this)}
-          _showResizeImagePage={this._showResizeImagePage.bind(this)}
-          _showAddFramePage={this._showAddFramePage.bind(this)}
-          styleList={this.state.styleList}
-          isLoading={this.state.isLoading}
-          style={{width: '100%', position: 'absolute'}}
-          ref={this.mode2ControllerRef}
-        />
+        {
+          this.state.gotStyleList ?
+          <SingleTransferController
+            _updateStylize={this._updateStylize.bind(this)}
+            _changeStyleSelected={this._changeStyleSelected.bind(this)}
+            _selectStyleImg={this._selectStyleImg.bind(this)}
+            _showChooseContentInModel={this._showChooseContentInModel.bind(this)}
+            _showModifyPage={this._showModifyPage.bind(this)}
+            _showResizeImagePage={this._showResizeImagePage.bind(this)}
+            _showAddFramePage={this._showAddFramePage.bind(this)}
+            styleList={this.state.styleList}
+            isLoading={this.state.isLoading}
+            style={{width: '100%', position: 'absolute'}}
+            ref={this.mode1ControllerRef}
+          /> : null
+        }
+
+        {
+          this.state.gotStyleList ?
+          // 模式二
+          <MultiTransferController
+            _showChooseContentInModel={this._showChooseContentInModel.bind(this)}
+            _selectStyleImg={this._selectStyleImg.bind(this)}
+            _updateStylizeMulti={this._updateStylizeMulti.bind(this)}
+            _showModifyPage={this._showModifyPage.bind(this)}
+            _showResizeImagePage={this._showResizeImagePage.bind(this)}
+            _showAddFramePage={this._showAddFramePage.bind(this)}
+            styleList={this.state.styleList}
+            isLoading={this.state.isLoading}
+            style={{width: '100%', position: 'absolute'}}
+            ref={this.mode2ControllerRef}
+          /> : null
+        }
 
 
         {/* 选择原图方式弹窗 */}

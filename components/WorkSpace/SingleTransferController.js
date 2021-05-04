@@ -28,11 +28,12 @@ export default class SingleTransferController extends React.Component{
       show: false
     };
     this.updateStylize = this.props._updateStylize
-    this.renderStylePreview = this.props._renderStylePreview
     this.showChooseContentInModel = this.props._showChooseContentInModel
     this.showModifyPage = this.props._showModifyPage
     this.showResizeImagePage = this.props._showResizeImagePage
     this.showAddFramePage = this.props._showAddFramePage
+    this.selectStyleImg = this.props._selectStyleImg
+    this.changeStyleSelected = this.props._changeStyleSelected
 
     this.styleList = this.props.styleList
 
@@ -46,7 +47,6 @@ export default class SingleTransferController extends React.Component{
         easing: Easing.linear,
         duration: 200,
         toValue: 1,
-        useNativeDriver: false
       }
     ).start()
   }
@@ -58,7 +58,6 @@ export default class SingleTransferController extends React.Component{
         easing: Easing.linear,
         duration: 200,
         toValue: 0,
-        useNativeDriver: false
       }
     ).start()
 
@@ -82,6 +81,54 @@ export default class SingleTransferController extends React.Component{
     this.props.hide()
     this.out()
   }
+
+
+  // 渲染风格图预览
+  _renderStylePreview(item, index) {
+    // 首个：总是为添加
+    if (index === 0) return (
+      <TouchableOpacity key={index}
+        style={{marginRight: 10, backgroundColor: '#eee', width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center'}}
+        onPress={() => this.selectStyleImg()}>
+        <Image source={require('../../assets/images/stylesPreview/no_picture.png')} style={{width: 40, height: 40}}></Image>
+      </TouchableOpacity>
+    )
+    else if (!item.preset) return (
+      <View style={{marginRight: 10}} key={index}>
+        <TouchableOpacity  onPress={() => this.changeStyleSelected(index)}>
+          <Image source={{ uri: item.url }} style={{width: 80, height: 80}}></Image>
+        </TouchableOpacity>
+        
+        <View style={{position: 'absolute', bottom: 10, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.6)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
+          <Text style={{fontSize: 10}}>自定义风格</Text>
+        </View>
+        {
+          item.selected ? this._renderStyleSelectedFlag() : null
+        }
+      </View>
+    );
+    else return (
+      <View key={index} style={{marginRight: 10, position: 'relative'}}>
+        <TouchableOpacity onPress={() => this.changeStyleSelected(index)}>
+          <Image source={{uri: this.styleList[index].url}} style={{width: 80, height: 80}} />
+        </TouchableOpacity>
+        <View style={{position: 'absolute', bottom: 10, width: '100%', height: 20, backgroundColor: 'rgba(255, 255, 255, 0.7)', display: 'flex', justifyContent: 'center', paddingLeft: 10}}>
+          <Text style={{fontSize: 10}}>{item.name}</Text>
+        </View>
+        {
+          item.selected ? this._renderStyleSelectedFlag() : null
+        }
+      </View>
+    )
+  }
+  _renderStyleSelectedFlag() {
+    return (
+      <View style={{position: 'absolute', top: 0, zIndex: 100}}>
+        <Image source={require('../../assets/images/stylesPreview/selected_flag.png')} style={{width: 30, height: 30, top: 20, left: 25}}></Image>
+      </View>
+    )
+  }
+
 
   componentDidMount() {
     this.show()
@@ -154,7 +201,7 @@ export default class SingleTransferController extends React.Component{
         <View style={styles.presetStylesMode1}>
           <ScrollView horizontal={true} style={{height: 90, marginLeft: 20, marginRight: 20}}>
             {
-              this.styleList.map((item, index) => this.renderStylePreview(item, index))
+              this.styleList.map((item, index) => this._renderStylePreview(item, index))
             }
           </ScrollView>
           {/* 底部按钮 */}

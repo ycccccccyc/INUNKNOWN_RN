@@ -41,10 +41,10 @@ export class StyleTranfer {
 
   async warmup() {
     // Also warmup
-    let input = tf.randomNormal([320, 240, 3]);
-    const res = await this.stylize(input, input);
-    await res.data();
-    tf.dispose([input, res]);
+    // let input = tf.randomNormal([320, 240, 3]);
+    // const res = await this.stylize(input, input);
+    // await res.data();
+    // tf.dispose([input, res]);
   }
 
   /**

@@ -20,28 +20,51 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, HeaderBackButton } from '@react-navigation/stack';
 
 import HomePage from './pages/HomePage';
-import WorkSpace from './pages/WorkSpace'
+import CommunityDetailPage from './pages/CommunityDetailPage'
+
+import EventBus from 'react-native-event-bus';
 
 const RootStack = createStackNavigator();
 
 
-function MainStackNav() {
-  return (
-    <View style={{width: '100%', height: '100%'}}>
-      <RootStack.Navigator
-        initialRouteName='HomePage'
-        screenOptions={{ gestureEnabled: false, headerShown: false }}
-        mode="card"
-      >
-        <RootStack.Screen name="HomePage" component={HomePage} />
-        <RootStack.Screen name="WorkSpace" component={WorkSpace} />
-      </RootStack.Navigator>
-      {
-        // <View style={{ width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.65)'}}></View>
-      }
-    </View>
-  );
+class MainStackNav extends Component {
+  constructor(props) {
+    super(props)
+
+    this.state = {
+
+    };
+    this.communityDetailRef = React.createRef();
+  }
+
+  _showCommunityDetailPage() {
+    console.log('hh')
+  }
+
+  render() {
+    return (
+      <View style={{width: '100%', height: '100%'}}>
+        <RootStack.Navigator
+          initialRouteName='HomePage'
+          screenOptions={{ gestureEnabled: false, headerShown: false }}
+          mode="card"
+        >
+          <RootStack.Screen name="HomePage" component={HomePage} />
+          <RootStack.Screen name="CommunityDetailPage" component={CommunityDetailPage} />
+        </RootStack.Navigator>
+
+
+        {/* 各类需要出现在最顶层的窗口 */}
+        <CommunityDetailPage
+          ref={this.communityDetailRef}
+          >
+        </CommunityDetailPage>
+
+      </View>
+    )
+  }
 }
+
 
 export default class NavManager extends Component {
   constructor(props) {
@@ -52,19 +75,7 @@ export default class NavManager extends Component {
   }
 
   componentDidMount() {
-    // fetch('http://192.168.1.104:3000/question').then((res) => {
-    //   console.log(res)
-    //   return res.json();
-    // })
-    // .then((data) => console.log(data))
-    // .catch(error => {
-    //   console.log(error)
-    // })
-    // .done()
-  }
-
-  _cacheResourcesAsync() {
-    console.log('loading resources')
+    // communityDetailRef.show();
   }
 
   render() {
