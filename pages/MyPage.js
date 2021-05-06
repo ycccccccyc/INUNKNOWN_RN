@@ -39,22 +39,54 @@ export default class MyPage extends Component {
         myWorksList: data
       }, () => this.forceUpdate())
     }
-    console.log(this.state.myWorksList)
   }
 
 
 
   _renderWorkItem(item, index) {
     return (
-      <View style={{width: '100%', height: 220, borderBottomColor: '#eee', borderBottomWidth: 1}} key={index}>
-        <Image source={{uri: item.imgUrl}} style={{width: 200, height: 200, borderRadius: 10, position: 'absolute', right: 10, top: 10}}></Image>
-        <View style={{position: 'absolute', left: 10}}>
-          <Text>{item.timeStamp}</Text>
-          {/* 装饰 */}
-          <View style={{width: 30, height: 30, borderRadius: 15, backgroundColor: '#fff', borderWidth: 5 ,borderColor: 'rgb(120,181,212)'}}>
-            <View style={{width: 10, height: 10, borderRadius: 15, backgroundColor: '#fff', borderWidth: 5 ,borderColor: 'rgb(120,181,212)'}}></View>
+      <View style={{width: '100%', height: 220, borderBottomColor: '#eee', borderBottomWidth: index === this.state.myWorksList.length - 1 ? 0 : 1, marginBottom: index === this.state.myWorksList.length - 1 ? 40 : 0}} key={index}>
+        {/* 装饰 */}
+        <View style={{position: 'absolute', top: 40}}>
+          <View style={{width: 24, height: 24, borderRadius: 15, backgroundColor: '#fff', borderWidth: 3, borderColor: 'rgb(120,181,212)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 100, top: 20}}>
+            <View style={{width: 16, height: 16, borderRadius: 15, backgroundColor: '#fff', borderWidth: 3, borderColor: 'rgb(120,181,212)', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+              <View style={{width: 8, height: 8, borderRadius: 15, backgroundColor: '#fff', borderWidth: 3, borderColor: 'rgb(120,181,212)', display: 'flex', justifyContent: 'center', alignItems: 'center'}}></View>
+            </View>
           </View>
+          <View style={{zIndex: -1, width: 200, height: 2, backgroundColor: 'rgb(120,181,212)', position: 'absolute', top: 30}}></View>
         </View>
+
+        <Image source={{uri: item.imgUrl}} style={{width: 200, height: 200, borderRadius: 10, position: 'absolute', right: 10, top: 10}}></Image>
+        {/* 原图 */}
+        <Image source={{uri: item.contentSrcUrl}} style={{width: 80, height: 80, position: 'absolute', borderWidth: 5, borderColor: '#fff', right: 0, bottom: 0}}></Image>
+
+
+        {/* 发布时间 */}
+        <View style={{position: 'absolute', left: 25, top: 53, backgroundColor: 'rgb(151,208,237)', paddingLeft: 10, paddingRight: 10, borderRadius: 8}}>
+          <Text style={{color: '#fff', fontSize: 11}}>{item.timeStamp}</Text>
+        </View>
+        {/* 名字 */}
+        <View style={{width: 120, height: 30, left: 10, top: 12}}>
+          <Text numberOfLines={2} style={{fontSize: 14, fontWeight: '900'}}>{item.imgName}</Text>
+        </View>
+        <View style={{width: 126, height: 30, left: 0, top: 55}}>
+          <Text numberOfLines={5} style={{fontSize: 10, color: '#999'}}>{item.introduction}</Text>
+        </View>
+
+        {/* 风格图 */}
+        <View style={{width: 126, height: 60, backgroundColor:'#fff', top: 90, borderWidth: 1, borderColor: '#eee', borderRadius: 5, display: 'flex', flexDirection: 'row', justifyContent: 'space-around', paddingTop: 5}}>
+          {
+            item.styleSrcUrl.map((style, indexx) => {
+              return (
+                <View style={{}} key={indexx}>
+                  <Image source={{uri: style}} style={{width: 36, height: 35}}></Image>
+                  <Text style={{width: 35, position: 'absolute', textAlign: 'center', top: 35, fontSize: 10, left: 0}}>{this.state.myWorksList[index].styleRatio[indexx]}</Text>
+                </View>
+              )
+            })
+          }
+        </View>
+        
       </View>
     )
   }
@@ -110,7 +142,7 @@ export default class MyPage extends Component {
 
 
         <View style={[styles.myWorksList, {height: Dimensions.get('window').height - 40 - 200}]}>
-          <Text style={{textAlign: 'center'}}>创作列表</Text>
+          {/* <Text style={{textAlign: 'center'}}>创作列表</Text> */}
           <ScrollView showsVerticalScrollIndicator={false}>
             {
               this.state.myWorksList.map((item, index) => this._renderWorkItem(item, index))

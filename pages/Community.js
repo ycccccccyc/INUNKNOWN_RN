@@ -64,7 +64,7 @@ export default class Community extends Component {
             <Text numberOfLines={2} style={{fontSize: 12, color: '#666'}}>{item.introduction}</Text>
           </View>
 
-          <View style={{position: 'absolute', width: 30, height: 30, backgroundColor: '#f00'}}></View>
+          {/* <View style={{position: 'absolute', width: 30, height: 30, backgroundColor: '#f00'}}></View> */}
         </View>
 
       </View>

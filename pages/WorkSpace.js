@@ -725,6 +725,7 @@ export default class WorkSpacePage extends Component {
 
   // 保存图片
   _saveImage() {
+    this.etcModalRef.current.hide();
     const {displayImg, displayImgMulti, transferMode} = this.state;
     let saveImage;
     if (transferMode === 0) {
