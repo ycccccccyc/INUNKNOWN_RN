@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import services from '../services/community';
 
+import EventBus from 'react-native-event-bus';
+
 const clientWidth = Dimensions.get('window').width;
 
 export default class Community extends Component {
@@ -19,7 +21,7 @@ export default class Community extends Component {
     this.state = {
       layoutWidth: (clientWidth -45) / 2,
       myBaseInfo: {},
-      imageList: []
+      imageList: [],
     }
   }
 
@@ -47,7 +49,7 @@ export default class Community extends Component {
   _renderCommunityImage(item, index) {
     return (
       <View style={{display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: clientWidth, marginTop: index === 0 ? 20 : 40}} key={index}>
+          width: clientWidth, marginTop: index === 0 ? 20 : 30}} key={index}>
         <View style={[styles.piece_container, {width: clientWidth - 40}]}>
           <TouchableOpacity
             activeOpacity={0.9}
@@ -74,12 +76,15 @@ export default class Community extends Component {
     // 点开头像
   }
 
+  _showCommunityDetailPage(data) {
+    EventBus.getInstance().fireEvent("showCommunityDetailPage", data)
+  }
+
 
 
   componentDidMount() {
     this.getBaseUserInfo();
     this.getCommunityImageList();
-    console.log(this._showCommunityDetailPage);
   }
 
   render() {

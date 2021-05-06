@@ -22,8 +22,6 @@ import { createStackNavigator, HeaderBackButton } from '@react-navigation/stack'
 import HomePage from './pages/HomePage';
 import CommunityDetailPage from './pages/CommunityDetailPage'
 
-import EventBus from 'react-native-event-bus';
-
 const RootStack = createStackNavigator();
 
 
@@ -37,9 +35,7 @@ class MainStackNav extends Component {
     this.communityDetailRef = React.createRef();
   }
 
-  _showCommunityDetailPage() {
-    console.log('hh')
-  }
+
 
   render() {
     return (

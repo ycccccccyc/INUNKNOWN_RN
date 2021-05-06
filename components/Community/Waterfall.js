@@ -9,6 +9,9 @@ import {
 } from "react-native";
 
 import PropTypes from "prop-types";
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs(['VirtualizedLists should never be nested inside plain ScrollViews with the same orientation - use another VirtualizedList-backed container instead.']);
 
 class Item extends React.PureComponent {
     render() {
