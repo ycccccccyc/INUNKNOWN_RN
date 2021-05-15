@@ -118,7 +118,6 @@ export default class WorkSpacePage extends Component {
       gotStyleList: false,
       styleList: [],
       imgFineness: 500,
-      styleFineness: 10,
 
       styleIndexSelected: 0,                    // 选择的风格图的下标
       styleIndexSelectedMuti: [],
@@ -479,13 +478,13 @@ export default class WorkSpacePage extends Component {
     let {state} = this;
     if (state.isLoading) return;
     // 多风格风格化
-    let content = await resizeImage(state.contentImgMulti.url, state.styleFineness)
+    let content = await resizeImage(state.contentImgMulti.url, state.imgFineness)
       .catch(err => console.log('err'))
     content = content.base64;
 
     let styles = [];
     for (let i = 0; i < selectedIndexList.length; i++) {
-      let temp = await resizeImage(state.styleList[selectedIndexList[i]].url, state.styleFineness);
+      let temp = await resizeImage(state.styleList[selectedIndexList[i]].url, state.imgFineness);
       temp = temp.base64
       styles.push(temp);
     }

@@ -86,6 +86,10 @@ export default class ModifyPage extends Component {
               }),
             }]}>
             <Text style={{textAlign: 'center'}}>微调</Text>
+            <TouchableOpacity
+              onPress={() => this.hide()}>
+              <Text>关闭</Text>
+            </TouchableOpacity>
           </Animated.View>
         </View>
       )
