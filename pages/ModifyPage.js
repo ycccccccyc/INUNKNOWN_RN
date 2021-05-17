@@ -9,7 +9,9 @@ import {
   Easing,
   Dimensions,
   TouchableWithoutFeedback,
-} from 'react-native'
+  findNodeHandle
+} from 'react-native';
+import { BlurView, VibrancyView } from "react-native-blur";
 
 const { width, height } = Dimensions.get('window')
 
@@ -18,12 +20,11 @@ export default class ModifyPage extends Component {
     super(props)
     this.state = {
       offset: new Animated.Value(0),
-      show: false
+      show: false,
+      image: null,
+      viewRef: null,
+      backgroundImgLoaded: false
     }
-    // this.transferMode = this.props.transferMode;
-    // this.savedImage = this.props.savedImage;
-    // this.imageWidth = this.props.imageWidth;
-    // this.imageHeight = this.props.imageHeight;
   }
 
   in() {
@@ -53,9 +54,9 @@ export default class ModifyPage extends Component {
     )
   }
 
-  show(savedImage) {
-    this.savedImage = savedImage;
+  show(image) {
     this.setState({
+      image: image,
       show: true
     }, this.in())
   }
@@ -69,8 +70,35 @@ export default class ModifyPage extends Component {
     this.out()
   }
 
+
+  _renderImage() {
+    const screenRatio = gWidth / gHeight;
+    let height = Math.ceil(gHeight - 200);
+    let width = Math.ceil(this.state.image.width / this.state.image.height  * height);
+    if (width > gWidth) {
+      width = gWidth;
+      height = Math.floor(this.state.image.height / this.state.image.width * width);
+    }
+    return (
+      <Image
+        source={{uri: this.state.image.url}}
+        style={{height: height, width: width, marginBottom: 200}} />
+    )
+  }
+
+
+
   componentDidMount() {
     // this.show();
+  }
+
+  imageLoaded() {
+    this.setState({
+      viewRef: findNodeHandle(this.backgroundImg),
+    }, this.forceUpdate())
+    this.setState({
+      backgroundImgLoaded: true
+    })
   }
 
   render() {
@@ -85,8 +113,37 @@ export default class ModifyPage extends Component {
                 outputRange: [width, 0]
               }),
             }]}>
-            <Text style={{textAlign: 'center'}}>微调</Text>
+
+            
+            <Image
+              ref={(img) => {this.backgroundImg = img}}
+              source={{uri: this.state.image.url}}
+              onLoadEnd={this.imageLoaded.bind(this)}
+              style={{width: '100%', height: '100%', position: 'absolute'}} />
+            <View style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}></View>
+            {/* {
+              this.state.backgroundImgLoaded ? 
+              <BlurView
+                style={{position: 'absolute', top: 0, top: 0, bottom: 0, right: 0, width: '100%', height: '100%'}}
+                blurType="light"
+                viewRef={this.state.viewRef}
+                blurAmount={10} /> : null
+            } */}
+
+            {
+              this._renderImage()
+            }
+
+
+
+            {/* 控制栏 */}
+            <View style={styles.controller}>
+
+            </View>
+
+
             <TouchableOpacity
+              style={{position: 'absolute', top: 10, left: 10}}
               onPress={() => this.hide()}>
               <Text>关闭</Text>
             </TouchableOpacity>
@@ -112,6 +169,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   custom_flexCenter: {
     display: 'flex',
@@ -120,7 +179,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: '100%'
   },
-
+  controller: {
+    width: '100%',
+    height: 210,
+    position: 'absolute',
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+  }
 })
 
 ModifyPage.defaultProps = {

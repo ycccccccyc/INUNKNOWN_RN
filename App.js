@@ -20,7 +20,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, HeaderBackButton } from '@react-navigation/stack';
 
 import HomePage from './pages/HomePage';
-import CommunityDetailPage from './pages/CommunityDetailPage'
+import CommunityDetailPage from './pages/CommunityDetailPage';
+import LoadingPage from './pages/loadingPage';
+
+import Global from './constant/constant';
 
 const RootStack = createStackNavigator();
 
@@ -70,15 +73,25 @@ export default class NavManager extends Component {
     };
   }
 
+  loaded(styler) {
+    this.setState({
+      isReady: true,
+    })
+    gStyler = styler
+  }
+
   componentDidMount() {
-    // communityDetailRef.show();
   }
 
   render() {
-    return (
+    if (this.state.isReady) return (
       <NavigationContainer>
         <MainStackNav />
       </NavigationContainer>
-    );
+    )
+    return (
+      <LoadingPage
+        loaded={this.loaded.bind(this)} />
+    )
   }
 }

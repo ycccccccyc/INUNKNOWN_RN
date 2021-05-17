@@ -14,15 +14,14 @@ import {
   Animated,
   FlatList,
   Slider,
-  PermissionsAndroid
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import EventBus from 'react-native-event-bus';
 
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-react-native';
-import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
-import {StyleTranfer} from '../scripts/style_transfer';
+
 import {imageToBase64, base64ImageToTensor, tensorToImageUrl, resizeImage, toDataUri} from '../scripts/image_utils';
 import RNFetchBlob from 'react-native-fetch-blob';
 
@@ -40,6 +39,7 @@ import CameraRoll from '@react-native-community/cameraroll';
 import RNFS from 'react-native-fs'; //文件处理
 
 import services from '../services/workspace';
+import CustomAlert from '../components/base/Alert';
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
@@ -122,7 +122,7 @@ export default class WorkSpacePage extends Component {
       styleIndexSelected: 0,                    // 选择的风格图的下标
       styleIndexSelectedMuti: [],
       cameraType: Camera.Constants.Type.back,   // 相机类型(expo-camera需要用到)
-      isLoading: true,                          // 逻辑处理的标志,最初表示模型等的加载
+      isLoading: false,                          // 逻辑处理的标志,最初表示模型等的加载
       imgTransferred: false,                     // 图像已经被成功转换
       imgTransferredMulti: false,
 
@@ -132,7 +132,6 @@ export default class WorkSpacePage extends Component {
     };
 
     // 初始化工作
-    this.styler = new StyleTranfer();
     this.ImagePicker = require('react-native-image-picker');
     this.uploadOptions = {
       title: '选择图片',
@@ -170,25 +169,9 @@ export default class WorkSpacePage extends Component {
     this.addFramePageRef = React.createRef();
     this.modifyPageRef = React.createRef();
     this.resizeImagePageRef = React.createRef();
+    this.alertRef = React.createRef();
 
   }
-
-  _getStoragePermission = async () => {
-    try {
-        const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-            {
-                title: "My App Storage Permission",
-                message: "My App needs access to your storage " +
-                    "so you can save your photos",
-            },
-        );
-        return granted;
-    } catch (err) {
-        console.error("Failed to request permission ", err);
-        return null;
-    }
-  };
 
 
   // 切换模式时重置一些必要的数据
@@ -458,6 +441,9 @@ export default class WorkSpacePage extends Component {
 
   // 更新图片
   async _updateStylize(ratio) {
+    this.setState({
+      imgTransferred: false
+    })
     let {state} = this;
     if (state.isLoading) return;
     // 风格化
@@ -475,6 +461,9 @@ export default class WorkSpacePage extends Component {
     this.forceUpdate() // 强制结束一个生命周期，重新渲染生效后的displayImg
   }
   async _updateStylizeMulti(selectedIndexList, ratioList) {
+    this.setState({
+      imgTransferred: false
+    })
     let {state} = this;
     if (state.isLoading) return;
     // 多风格风格化
@@ -503,7 +492,7 @@ export default class WorkSpacePage extends Component {
     const contentTensor = await base64ImageToTensor(contentImage);
     const styleTensor = await base64ImageToTensor(styleImage);
     console.log('-------------------------------')
-    const stylizedResult = await this.styler.stylize(
+    const stylizedResult = await gStyler.stylize(
       styleTensor, contentTensor, ratio);
     const stylizedImage = await tensorToImageUrl(stylizedResult);
     tf.dispose([contentTensor, styleTensor, stylizedResult]);
@@ -516,7 +505,7 @@ export default class WorkSpacePage extends Component {
       let temp = await base64ImageToTensor(styles[i]);
       styleTensorList.push(temp);
     }
-    const stylizedResult = await this.styler.combine(
+    const stylizedResult = await gStyler.combine(
       styleTensorList, contentTensor, ratioList);
     const stylizedImage = await tensorToImageUrl(stylizedResult);
     return stylizedImage;
@@ -676,7 +665,9 @@ export default class WorkSpacePage extends Component {
 
   // 微调页面
   _showModifyPage() {
-    this.modifyPageRef.current.show();
+    const img = this._getCurrenDisplayImg();
+    if (!img) return;
+    this.modifyPageRef.current.show(img);
   }
   // 裁剪页面
   _showResizeImagePage() {
@@ -688,26 +679,42 @@ export default class WorkSpacePage extends Component {
   }
 
 
+  // 确认能否打开其余页面
+  _getCurrenDisplayImg() {
+    // 在进入其余页面时获得当前需要被处理的图片
+    const {
+      transferMode,
+      contentImg,
+      contentImgMulti,
+      displayImg,
+      displayImgMulti,
+      imgTransferred,
+      imgTransferredMulti
+    } = this.state;
+
+    // 没有图情况下的处理    
+    if ((transferMode === 0 && !imgTransferred && !contentImg.url) || (transferMode === 1 && !imgTransferredMulti && !contentImgMulti.url)){
+      this.alertRef.current.show('没有任何图片:(')
+      return null;
+    }
+
+    switch (transferMode) {
+      case 0: 
+        if (imgTransferred) return toDataUri(displayImg)
+        else return contentImg
+      case 1: 
+        if (imgTransferredMulti) return toDataUri(displayImgMulti)
+        else return contentImgMulti
+      default:
+        return contentImg
+    }
+  }
+
+
   async componentDidMount() {
     // 准备数据
     // 风格图片
     await this._getStyleList();
-
-    // Wait for tf to be ready.
-    await tf.ready();
-    // Signal to the app that tensorflow.js can now be used.
-    this.setState({
-      isTfReady: true,
-    });
-
-    await this.styler.init();
-    const { status } = await Permissions.askAsync(Permissions.CAMERA);
-    this.setState({
-      hasCameraPermission: status === 'granted',
-      isLoading: false
-    })
-
-    await this._getStoragePermission();
   }
 
   async _getStyleList() {
@@ -763,6 +770,8 @@ export default class WorkSpacePage extends Component {
       }
     });
   }
+
+
 
   render() {
     let { state } = this;
@@ -927,6 +936,10 @@ export default class WorkSpacePage extends Component {
         <ModifyPage
           ref={this.modifyPageRef}>
         </ModifyPage>
+
+        {/* 提示弹窗 */}
+        <CustomAlert
+          ref={this.alertRef}></CustomAlert>
 
       </View>
     )
