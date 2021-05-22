@@ -49,7 +49,7 @@ class MainStackNav extends Component {
           mode="card"
         >
           <RootStack.Screen name="HomePage" component={HomePage} />
-          <RootStack.Screen name="CommunityDetailPage" component={CommunityDetailPage} />
+          {/* <RootStack.Screen name="CommunityDetailPage" component={CommunityDetailPage} /> */}
         </RootStack.Navigator>
 
 

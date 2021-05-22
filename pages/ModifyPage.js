@@ -13,6 +13,10 @@ import {
 } from 'react-native';
 import { BlurView, VibrancyView } from "react-native-blur";
 
+// import RNImageFilter from "react-native-image-filter";
+// import ImageFilters, { Constants } from 'react-native-gl-image-filters';
+
+
 const { width, height } = Dimensions.get('window')
 
 export default class ModifyPage extends Component {
@@ -21,9 +25,11 @@ export default class ModifyPage extends Component {
     this.state = {
       offset: new Animated.Value(0),
       show: false,
-      image: null,
+      image: {},
       viewRef: null,
-      backgroundImgLoaded: false
+      backgroundImgLoaded: false,
+
+      imgBase64: null, //////
     }
   }
 
@@ -59,6 +65,21 @@ export default class ModifyPage extends Component {
       image: image,
       show: true
     }, this.in())
+
+    // RNImageFilter.getSourceImage(
+    //   {
+    //     imageSource: image.url,
+    //     dataType: "Path",
+    //     filterType: 1,
+    //   },
+    //   (source) => {
+    //     this.setState({
+    //       imgBase64: source.base64
+    //     });
+    //     console.log("SOURCE", source);
+    //     // source returns the height, width and the Base64 string of the image.
+    //   }
+    // )
   }
 
   hide() {
@@ -89,7 +110,6 @@ export default class ModifyPage extends Component {
 
 
   componentDidMount() {
-    // this.show();
   }
 
   imageLoaded() {
@@ -138,7 +158,7 @@ export default class ModifyPage extends Component {
 
             {/* 控制栏 */}
             <View style={styles.controller}>
-
+              <Text>哒哒哒</Text>
             </View>
 
 

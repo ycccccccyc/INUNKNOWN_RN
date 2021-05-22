@@ -74,7 +74,6 @@ export default class MaterialPage extends Component  {
   _renderItem(item, index) {
     if (index === 0) return;
     const itemWidth = Math.floor((Dimensions.get('window').width - 32) / 2);
-    const itemHeight = (index % 4 === 0 || index % 4 === 3) ? 300 : 260;
     return (
       <View style={[styles.display_item, {width: itemWidth, height: 260}]} key={index}>
         <Image source={{uri: item.url}} style={{width: '100%', height: '100%', borderRadius: 5}}></Image>
@@ -194,13 +193,16 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     height: 100,
+    marginTop: 50,
     backgroundColor: '#fff',
     elevation: 10,
     shadowColor: '#eee',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     shadowRadius: 10,
-    zIndex: 100
+    zIndex: 100,
+    borderTopColor: '#eee',
+    borderTopWidth: 4,
   },
   type_container: {
     height: 30,

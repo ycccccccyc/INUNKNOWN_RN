@@ -137,12 +137,12 @@ export default class CommunityDetailPage extends Component {
           </ScrollView>
 
           <View style={styles.bottom_bar}>
-            <View>
+            {/* <View>
               <Text>like</Text>
             </View>
             <View>
               <Text>shou</Text>
-            </View>
+            </View> */}
           </View>
         </View>
       </Animated.View>

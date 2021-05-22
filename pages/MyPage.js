@@ -65,16 +65,18 @@ export default class MyPage extends Component {
         <View style={{position: 'absolute', left: 25, top: 53, backgroundColor: 'rgb(151,208,237)', paddingLeft: 10, paddingRight: 10, borderRadius: 8}}>
           <Text style={{color: '#fff', fontSize: 11}}>{item.timeStamp}</Text>
         </View>
+
         {/* 名字 */}
         <View style={{width: 120, height: 30, left: 10, top: 12}}>
-          <Text numberOfLines={2} style={{fontSize: 14, fontWeight: '900'}}>{item.imgName}</Text>
+          <Text numberOfLines={1} style={{fontSize: 14, fontWeight: '900'}}>{item.imgName}</Text>
         </View>
-        <View style={{width: 126, height: 30, left: 0, top: 55}}>
+
+        <View style={{width: 126, left: 0, top: 55}}>
           <Text numberOfLines={5} style={{fontSize: 10, color: '#999'}}>{item.introduction}</Text>
         </View>
 
         {/* 风格图 */}
-        <View style={{width: 126, height: 60, backgroundColor:'#fff', top: 90, borderWidth: 1, borderColor: '#eee', borderRadius: 5, display: 'flex', flexDirection: 'row', justifyContent: 'space-around', paddingTop: 5}}>
+        <View style={{width: 126, height: 60, backgroundColor:'#fff', position: 'absolute', bottom: 10, borderWidth: 1, borderColor: '#eee', borderRadius: 5, display: 'flex', flexDirection: 'row', justifyContent: 'space-around', paddingTop: 5}}>
           {
             item.styleSrcUrl.map((style, indexx) => {
               return (

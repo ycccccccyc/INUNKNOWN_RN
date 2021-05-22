@@ -22,7 +22,7 @@ import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-react-native';
 import { Camera } from 'expo-camera';
 
-import {imageToBase64, base64ImageToTensor, tensorToImageUrl, resizeImage, toDataUri} from '../scripts/image_utils';
+import {imageToBase64, base64ImageToTensor, tensorToImageUrl, resizeContent, resizeStyle, toDataUri} from '../scripts/image_utils';
 import RNFetchBlob from 'react-native-fetch-blob';
 
 import ChooseContentInModel from '../components/Modal/ChooseContentInModel';
@@ -40,9 +40,6 @@ import RNFS from 'react-native-fs'; //文件处理
 
 import services from '../services/workspace';
 import CustomAlert from '../components/base/Alert';
-
-const screenHeight = Dimensions.get('window').height;
-const screenWidth = Dimensions.get('window').width;
 
 class ModeNaviHandler extends React.Component {
   constructor(props) {
@@ -97,7 +94,6 @@ export default class WorkSpacePage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isTfReady: false,
       selectedContentImg: false,
       selectedContentImgMulti: false,
       // 内容图
@@ -205,7 +201,7 @@ export default class WorkSpacePage extends Component {
   _renderContentImage() {
     // 处理显示图片的大小
     let { width, height } = this.state.contentImg;
-    const screenW = Dimensions.get('window').width;
+    const screenW = gWidth;
     const showW = width > screenW ? screenW : width;
     const showH = width > screenW ? screenW * height / width : height;
 
@@ -215,7 +211,7 @@ export default class WorkSpacePage extends Component {
   }
   _renderContentImageMulti() {
     let { width, height } = this.state.contentImgMulti;
-    const screenW = Dimensions.get('window').width;
+    const screenW = gWidth;
     const showW = width > screenW ? screenW : width;
     const showH = width > screenW ? screenW * height / width : height;
 
@@ -447,10 +443,10 @@ export default class WorkSpacePage extends Component {
     let {state} = this;
     if (state.isLoading) return;
     // 风格化
-    let content = await resizeImage(state.contentImg.url, state.imgFineness)
+    let content = await resizeContent(state.contentImg.url)
       .catch(err => console.log('err'))
     content = content.base64;
-    let style = await resizeImage(state.styleList[state.styleIndexSelected].url, state.imgFineness);
+    let style = await resizeStyle(state.styleList[state.styleIndexSelected].url, 400);
     style = style.base64;
 
     let resultImage = await this.stylize(content, style, ratio).catch(err => console.log(err))
@@ -467,13 +463,13 @@ export default class WorkSpacePage extends Component {
     let {state} = this;
     if (state.isLoading) return;
     // 多风格风格化
-    let content = await resizeImage(state.contentImgMulti.url, state.imgFineness)
+    let content = await resizeContent(state.contentImgMulti.url)
       .catch(err => console.log('err'))
     content = content.base64;
 
     let styles = [];
     for (let i = 0; i < selectedIndexList.length; i++) {
-      let temp = await resizeImage(state.styleList[selectedIndexList[i]].url, state.imgFineness);
+      let temp = await resizeStyle(state.styleList[selectedIndexList[i]].url, state.imgFineness);
       temp = temp.base64
       styles.push(temp);
     }

@@ -172,15 +172,6 @@ export default class SingleTransferController extends React.Component{
 
         {/* 设定面板 */}
         <SettingPanel ref={this.settingPanelRef} mode={0}>
-          <TouchableOpacity
-            onPress={() => {this.settingPanelRef.current.showOrHide()}}
-            style={{width: 100, height: 25, position: 'absolute', left: 50, display: 'flex', alignItems: 'center', top: 8}}>
-            <Image source={require('../../assets/icon/icon_hide_down.png')} style={{width: 17, height: 5}}></Image>
-          </TouchableOpacity>
-          <Text style={[{marginTop: 15}, styles.setting_panel_text]}>内容图粒度：</Text>
-          <Text style={styles.setting_panel_text}>风格图粒度：</Text>
-          <Text style={styles.setting_panel_text}>特征提取算法：</Text>
-          <Text style={styles.setting_panel_text}>迁移算法：</Text>
         </SettingPanel>
 
 
@@ -191,9 +182,9 @@ export default class SingleTransferController extends React.Component{
             <Text style={{fontSize: 12}}>来自社区</Text>
           </View>
           <View style={{position: 'absolute', display: 'flex', flexDirection: 'row', top: 3, width: 240, left: 106, height: 30, backgroundColor: 'rgba(255, 255, 255, 0)'}}>
-            <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>分组1</Text>
-            <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>分组2</Text>
-            <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>分组3</Text>
+            <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 1)'}}>古典</Text>
+            <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>纹理</Text>
+            <Text style={{fontSize: 12, paddingTop: 3, width: 60, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>自然风光</Text>
           </View>
         </View>
 
@@ -239,7 +230,7 @@ export default class SingleTransferController extends React.Component{
               onPress={() => {if (!this.props.isLoading) this.showModifyPage()}}>
               <View style={[styles.custom_flexCenter, {flex: 1, textAlign: 'center'}]}>
                 <Image source={require('../../assets/icon/icon_modify.png')} style={{width: 20, height: 20}}></Image>
-                <Text>微调</Text>
+                <Text>保存</Text>
               </View>
             </TouchableOpacity>
 

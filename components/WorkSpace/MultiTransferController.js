@@ -280,7 +280,7 @@ export default class MultiTransferController extends React.Component{
           width: '100%',
           bottom: this.state.offset.interpolate({
             inputRange: [0, 1],
-            outputRange: [-230, 0]
+            outputRange: [-240, 0]
           })
         }]}>
 
@@ -288,7 +288,8 @@ export default class MultiTransferController extends React.Component{
         <TouchableOpacity
           style={styles.btn_stylize}
           onPress={() => this.updateStylizeMulti(this.state.styleIndexSelectedMulti, this.state.styleRatioList)}>
-          <Text>执行</Text>
+          <Image source={require('../../assets/icon/icon_selected.png')} style={{width: 20, height: 20, left: -5}}></Image>
+          <Text style={{fontSize: 12, color: '#fff', left: -5}}>执行</Text>
         </TouchableOpacity>
 
         {/* 程度控制条 */}
@@ -336,9 +337,9 @@ export default class MultiTransferController extends React.Component{
             <Text style={{fontSize: 12}}>来自社区</Text>
           </View>
           <View style={{position: 'absolute', display: 'flex', flexDirection: 'row', top: 3, width: 240, left: 106, height: 30, backgroundColor: 'rgba(255, 255, 255, 0)'}}>
-            <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>分组1</Text>
-            <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>分组2</Text>
-            <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>分组3</Text>
+            <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 1)'}}>古典</Text>
+            <Text style={{fontSize: 12, paddingTop: 3, width: 50, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>纹理</Text>
+            <Text style={{fontSize: 12, paddingTop: 3, width: 60, textAlign: 'center', height: 24, borderRadius: 5, marginRight: 6, backgroundColor: 'rgba(255, 255, 255, 0.6)'}}>自然风光</Text>
           </View>
         </View>
 
@@ -382,7 +383,7 @@ export default class MultiTransferController extends React.Component{
               onPress={() => {if (!this.props.isLoading) this.showModifyPage()}}>
               <View style={[styles.custom_flexCenter, {flex: 1, textAlign: 'center'}]}>
                 <Image source={require('../../assets/icon/icon_modify.png')} style={{width: 20, height: 20}}></Image>
-                <Text>微调</Text>
+                <Text>保存</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -390,15 +391,6 @@ export default class MultiTransferController extends React.Component{
 
         {/* 设置面板 */}
         <SettingPanel ref={this.settingPanelRef} mode={1}>
-          <TouchableOpacity
-            onPress={() => {this.settingPanelRef.current.showOrHide()}}
-            style={{width: 100, height: 25, position: 'absolute', left: 50, display: 'flex', alignItems: 'center', top: 8}}>
-            <Image source={require('../../assets/icon/icon_hide_down.png')} style={{width: 17, height: 5}}></Image>
-          </TouchableOpacity>
-          <Text style={[{marginTop: 15}, styles.setting_panel_text]}>内容图粒度：</Text>
-          <Text style={styles.setting_panel_text}>风格图粒度：</Text>
-          <Text style={styles.setting_panel_text}>特征提取算法：</Text>
-          <Text style={styles.setting_panel_text}>迁移算法：</Text>
         </SettingPanel>
 
         {/* 风格比例列表面板 */}
@@ -494,12 +486,18 @@ const styles = StyleSheet.create({
   },
   btn_stylize: {
     position: 'absolute',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
     bottom: 210,
     right: 10,
-    width: 40,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: 'rgb(156,220,254)'
+    width: 60,
+    height: 26,
+    borderRadius: 20,
+    backgroundColor: 'rgb(136,200,234)',
+    borderWidth: 2,
+    borderColor: '#fff'
   },
   text_currentConcerned: {
     color: '#fff',

@@ -88,8 +88,8 @@ export default class LoadingPage extends Component {
         const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
             {
-                title: "My App Storage Permission",
-                message: "My App needs access to your storage " +
+                title: "INUNKNOWN Storage Permission",
+                message: "INUNKNOWN needs access to your storage " +
                     "so you can save your photos",
             },
         );
@@ -123,16 +123,25 @@ export default class LoadingPage extends Component {
       })
       this.loadingPrepared(this.styler);
     });
-
   }
 
 
   render() {
     return (
       <View style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center'}}>
-        {this.state.isLoading ? <View style={[styles.loadingIndicator]}>
-          <ActivityIndicator size='large' color='#FF0266' />
-        </View> : <Text>加载完成</Text>}
+        {
+          this.state.isLoading
+          ? (
+            <View style={{width: '100%', height: '100%'}}>
+              <Image source={ require('../assets/images/screen_with_title.png')} style={{width: '100%', height: '100%', position: 'absolute'}}></Image>
+              <View style={[styles.loadingIndicator]}>
+                <ActivityIndicator size={70} color='#666' />
+                <Text style={{textAlign: 'center', fontSize: 13, color: '#333', marginTop: 10}}>正在加载模型资源...</Text>
+              </View>
+            </View>
+          )
+          : <Text>加载完成</Text>
+        }
       </View>
 
     );
@@ -148,9 +157,9 @@ LoadingPage.defaultProps = {
 
 const styles = StyleSheet.create({
   loadingIndicator: {
-    position: 'absolute',
+    // position: 'absolute',
     top: '50%',
-    left: 155,
+    // left: 155,
     // flexDirection: 'row',
     // justifyContent: 'flex-end',
     zIndex: 200,

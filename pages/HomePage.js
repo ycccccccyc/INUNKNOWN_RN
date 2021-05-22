@@ -93,7 +93,7 @@ const tabIconConfig = ({ route }) => ({
         <View
           style={styles.work_space_icon}
         >
-          <Image source={require('../assets/icon/icon_workspace.png')} style={{width: 40, height: 40}}></Image>
+          <Image source={require('../assets/icon/icon_workspace.png')} style={{width: 50, height: 50}}></Image>
         </View>
       )
     }
@@ -143,9 +143,9 @@ export default class TabScreen extends Component {
       <Tab.Navigator
         screenOptions={tabIconConfig}>
         <Tab.Screen name="Community" component={Community} options={tabBarVisibleOptionConfig} _showCommunityDetailPage={this._showCommunityDetailPage}/>
-        <Tab.Screen name="MaterialPage" component={MaterialPage} options={tabBarVisibleOptionConfig} />
+        {/* <Tab.Screen name="MaterialPage" component={MaterialPage} options={tabBarVisibleOptionConfig} /> */}
         <Tab.Screen name="WorkSpace" component={WorkSpace} options={tabBarVisibleOptionConfig} />
-        <Tab.Screen name="FavoritePage" component={FavoritePage} options={tabBarVisibleOptionConfig} />
+        {/* <Tab.Screen name="FavoritePage" component={FavoritePage} options={tabBarVisibleOptionConfig} /> */}
         <Tab.Screen name="MyPage" component={MyPage} options={tabBarVisibleOptionConfig} />
       </Tab.Navigator>
     )
@@ -154,14 +154,14 @@ export default class TabScreen extends Component {
 
 const styles = StyleSheet.create({
   work_space_icon: {
-    width: 70,
-    height: 70,
+    width: 75,
+    height: 75,
     borderRadius: 40,
     position: 'relative',
     top: -5,
-    backgroundColor: '#fff',
+    backgroundColor: 'rgb(184,220,234)',
     borderStyle: 'solid',
-    borderColor: '#ccc',
+    borderColor: '#fff',
     borderWidth: 3,
     elevation: 10,
     shadowColor: 'black',

@@ -127,7 +127,7 @@ def enableHermes = project.ext.react.get("enableHermes", false);
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    buildToolsVersion '23.0.3'
+    buildToolsVersion '29.0.2'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -140,6 +140,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
         renderscriptTargetApi 23
         renderscriptSupportModeEnabled true
     }
@@ -215,6 +216,8 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    compile project(':react-native-image-filter')
 }
 
 // Run this once to be able to run the application with BUCK

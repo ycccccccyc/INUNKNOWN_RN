@@ -7,13 +7,68 @@ import {
     TouchableOpacity,
     ScrollView,
     Image,
-    Dimensions
+    Dimensions,
+    TouchableWithoutFeedback,
+    Animated
 } from 'react-native';
 import services from '../services/community';
+import MaterialPage from './MaterialPage';
 
 import EventBus from 'react-native-event-bus';
 
 const clientWidth = Dimensions.get('window').width;
+
+
+class PageNaviHandler extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      translate: new Animated.Value(0)
+    };
+
+    this._translateX = this.state.translate.interpolate({
+      inputRange: [0, 1],
+      outputRange: [-65, 10] // 两个位置下，线条距离左边框的长度
+    });
+  }
+
+  animateToPage1() {
+    Animated.timing(
+      this.state.translate,
+      {
+        toValue: 0,
+        duration: 200,
+      }
+    ).start();
+  }
+
+  animateToPage2() {
+    Animated.timing(
+      this.state.translate,
+      {
+        toValue: 1,
+        duration: 200,
+      }
+    ).start();
+  }
+
+  render() {
+    return (
+      <Animated.View style={[
+        styles.pageNaviHandler,
+        {
+          transform: [
+            { translateX: 0 },
+            { translateX: this._translateX },  
+            { translateX: 0 }
+          ]
+        }
+      ]} />
+    );
+  }
+}
+
+
 
 export default class Community extends Component {
   constructor(props) {
@@ -22,7 +77,10 @@ export default class Community extends Component {
       layoutWidth: (clientWidth -45) / 2,
       myBaseInfo: {},
       imageList: [],
+      pageSelected: 0,
     }
+    this.pageNaviRef = React.createRef();
+    this.communityScrollRef = React.createRef();
   }
 
   async getBaseUserInfo() {
@@ -64,7 +122,6 @@ export default class Community extends Component {
             <Text numberOfLines={2} style={{fontSize: 12, color: '#666'}}>{item.introduction}</Text>
           </View>
 
-          {/* <View style={{position: 'absolute', width: 30, height: 30, backgroundColor: '#f00'}}></View> */}
         </View>
 
       </View>
@@ -90,6 +147,7 @@ export default class Community extends Component {
   render() {
     const {state} = this;
     return (
+      
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <View style={styles.top_bar}>
           <TouchableOpacity style={styles.avatar_Container} activeOpacity={0.6} onPress={() => this._showMyDrawer()}>
@@ -99,17 +157,54 @@ export default class Community extends Component {
             <Image
               source={require('../assets/images/avatarDeco/sakura.png')} style={styles.avatar_deco} />
           </TouchableOpacity>
+
+          <TouchableWithoutFeedback
+            onPress={() => {
+              this.setState({pageSelected: 0});
+              this.pageNaviRef.current.animateToPage1();
+            }}>
+            <Text style={{fontSize: 18, color: this.state.pageSelected > 0 ? '#999' : '#1296db', marginRight: 30, marginLeft: 10}}>动态</Text>
+          </TouchableWithoutFeedback>
+
+          <TouchableWithoutFeedback
+            onPress={() => {
+              this.setState({pageSelected: 1});
+              this.pageNaviRef.current.animateToPage2();
+            }}>
+            <Text style={{fontSize: 18, color:  this.state.pageSelected > 0 ? '#1296db' : '#999'}}>素材库</Text>
+          </TouchableWithoutFeedback>
+
+          {/* handler */}
+          <PageNaviHandler ref={this.pageNaviRef}></PageNaviHandler>
+
         </View>
 
         {/* 展示区 */}
         <ScrollView
-          style={styles.community_main_container}
-          showsVerticleScrollIndicator={false}>
-          {
-            this.state.imageList.map((item, index) => this._renderCommunityImage(item, index))
-          }
-          <Text style={{textAlign: 'center', marginTop: 80, marginBottom: 40, opacity: 0.5, fontSize: 12}}>再也没有啦！</Text>
+          horizontal={true}
+          alwaysBounceHorizontal={true}
+          showsHorizontalScrollIndicator={false}
+          pagingEnabled={true}
+          // onMomentumScrollEnd={this._modePageScrollEnd.bind(this, that)}
+          style={{width: '100%', display: 'flex', bottom: 0}}
+          ref={this.communityScrollRef}>
+
+          {/* 动态 */}
+          <ScrollView
+            style={styles.community_main_container}
+            showsVerticleScrollIndicator={false}>
+            {
+              this.state.imageList.map((item, index) => this._renderCommunityImage(item, index))
+            }
+            <Text style={{textAlign: 'center', marginTop: 80, marginBottom: 40, opacity: 0.5, fontSize: 12}}>再也没有啦！</Text>
+          </ScrollView>
+          
+          {/* 素材库 */}
+          <View style={[{width: Dimensions.get('window').width, height: '100%'}, styles.custom_flexCenter]}>
+            <MaterialPage></MaterialPage>
+          </View>
         </ScrollView>
+
 
       </View>
     );
@@ -121,6 +216,7 @@ const styles = StyleSheet.create({
   top_bar: {
     width: '100%',
     position: 'absolute',
+    zIndex: 2,
     top: 0,
     left: 0,
     height: 53,
@@ -131,6 +227,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     shadowRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   avatar_Container: {
     width: 40,
@@ -138,6 +237,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     top: 6,
     left: 10,
+    position: 'absolute',
   },
   avatar_deco: {
     width: 55,
@@ -152,7 +252,7 @@ const styles = StyleSheet.create({
     marginTop: 50,
     flex: 1,
     width: '100%',
-    paddingBottom: 40
+    paddingBottom: 40,
   },
   piece_container: {
     height: 300,
@@ -175,5 +275,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginLeft: 15,
     marginRight: 15
+  },
+  pageNaviHandler: {
+    width: 60,
+    height: 3,
+    backgroundColor: '#1296db',
+    position: 'absolute',
+    left: '50%',
+    bottom: 2,
   }
 })

@@ -5,6 +5,8 @@ const STYLENET_URL =
   'https://cdn.jsdelivr.net/gh/ycccccccyc/CDN@1.1/saved_model_style_js/model.json';
 const TRANSFORMNET_URL =
   'https://cdn.jsdelivr.net/gh/ycccccccyc/CDN@1.1/saved_model_transformer_separable_js/model.json';
+const HIGHSTYLENET_URL = 
+  ''
 
 export class StyleTranfer {
   constructor() {
@@ -115,8 +117,7 @@ export class StyleTranfer {
 
   async combine(styleList, contentImage, ratioList) {
     const start = Date.now();
-    // let styleRepresentation = await this.predictStyleParameters(styleImage);
-
+    
     // 程度化处理
     const ratioSum = ratioList.reduce((prev, next, index, ratioList) => {
       return prev + next;
