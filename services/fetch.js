@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 
 let interceptors_req = [], interceptors_res = [];
-const host = '192.168.1.104';
+const host = '192.168.1.107';
 const serviceport = '3000';
 
 function custom_fetch (input, init = {}) {

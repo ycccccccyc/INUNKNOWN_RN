@@ -22,6 +22,7 @@ export default class ChooseContentInModel extends Component {
         easing: Easing.linear,
         duration: 200,
         toValue: 1,
+        useNativeDriver: false
       }
     ).start()
   }
@@ -33,6 +34,7 @@ export default class ChooseContentInModel extends Component {
         easing: Easing.linear,
         duration: 200,
         toValue: 0,
+        useNativeDriver: false
       }
     ).start()
 

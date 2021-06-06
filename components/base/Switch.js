@@ -16,12 +16,16 @@ export default class ModalView extends Component {
       open: false
     }
     this.margin = this.props.margin;
+    this.open = this.props.open;
+    this.close = this.props.close;
   }
 
-  _switch() {
+  _switch() { 
     this.setState({
       open: !this.state.open
     }, this.forceUpdate())
+    if (this.state.open) this.close();
+    else this.open();
   }
 
 

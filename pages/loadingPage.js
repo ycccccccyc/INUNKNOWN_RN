@@ -158,7 +158,7 @@ LoadingPage.defaultProps = {
 const styles = StyleSheet.create({
   loadingIndicator: {
     // position: 'absolute',
-    top: '50%',
+    top: '45%',
     // left: 155,
     // flexDirection: 'row',
     // justifyContent: 'flex-end',

@@ -25,7 +25,8 @@ export default class SingleTransferController extends React.Component{
     super(props);
     this.state = {
       offset: new Animated.Value(0),
-      show: false
+      show: false,
+      ratioVal: 1
     };
     this.updateStylize = this.props._updateStylize
     this.showChooseContentInModel = this.props._showChooseContentInModel
@@ -147,6 +148,15 @@ export default class SingleTransferController extends React.Component{
           })
         }]}>
 
+
+        {/* 执行风格化按钮 */}
+        <TouchableOpacity
+          style={styles.btn_stylize}
+          onPress={() => this.updateStylize(this.state.ratioVal)}>
+          <Image source={require('../../assets/icon/icon_selected.png')} style={{width: 20, height: 20, left: -5}}></Image>
+          <Text style={{fontSize: 12, color: '#fff', left: -5}}>执行</Text>
+        </TouchableOpacity>
+
         {/* 风格化程度滑块 */}
         <View style={{position: 'absolute', bottom: 170, width: '100%'}}>
           <Text style={{color: '#fff', marginLeft: 45, fontSize: 10}}>风格化程度</Text>
@@ -159,7 +169,7 @@ export default class SingleTransferController extends React.Component{
             minimumTrackTintColor={'rgb(124,220,254)'}
             maximumTrackTintColor={'rgba(124,220,254, 0.7)'}
             thumbTintColor={'white'}
-            onSlidingComplete={ (value) => this.updateStylize(value / 100)}
+            onSlidingComplete={ (value) => {this.setState({ratioVal: value / 100})}}
           />
         </View>
 
@@ -260,6 +270,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  btn_stylize: {
+    position: 'absolute',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    bottom: 190,
+    right: 10,
+    width: 60,
+    height: 26,
+    borderRadius: 20,
+    backgroundColor: 'rgb(136,200,234)',
+    borderWidth: 2,
+    borderColor: '#fff'
   },
   setting_panel: {
     width: 200,

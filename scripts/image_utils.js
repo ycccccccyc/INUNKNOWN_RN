@@ -9,19 +9,21 @@ export function toDataUri(base64) {
 }
 
 export async function resizeContent(
-    imageUrl, width, resizeRatio, compress) {
-  const newWidth = Math.floor(width * resizeRatio);
+    imageUrl, width, resizeRatio) {
   let actions = [];
   if (width) {
+    const newWidth = Math.floor(width * parseFloat(gContentResizeRatio));
     actions = [{
       resize: {
-        newWidth,
+        width: newWidth,
       },
     }];
-  } else actions = [];
+  } else actions = [{
+    resize: {width: 500},
+  }];
 
   const saveOptions = {
-    compress: compress || 0.75,
+    compress: parseFloat(gCompressRatio),
     format: ImageManipulator.SaveFormat.JPEG,
     base64: true,
   };
@@ -32,15 +34,18 @@ export async function resizeContent(
 
 export async function resizeStyle(
   imageUrl, width, height, autoResize, compress) {
-  const actions = [];
-  const saveOptions = {
-    compress: compress || 0.75,
-    format: ImageManipulator.SaveFormat.JPEG,
-    base64: true,
-  };
-  const res =
-      await ImageManipulator.manipulateAsync(imageUrl, actions, saveOptions);
-  return res;
+    console.log('呀呀呀呀呀呀晕晕'+gContentIfResize)
+    const actions = [{
+      resize: {width: 300},
+    }];
+    const saveOptions = {
+      compress: 0.5,
+      format: ImageManipulator.SaveFormat.JPEG,
+      base64: true,
+    };
+    const res =
+        await ImageManipulator.manipulateAsync(imageUrl, actions, saveOptions);
+    return res;
 }
 
 export async function base64ImageToTensor(base64) {

@@ -191,18 +191,22 @@ export default class Community extends Component {
 
           {/* 动态 */}
           <ScrollView
-            style={styles.community_main_container}
+            style={[styles.community_main_container, {width: Dimensions.get('window').width}]}
             showsVerticleScrollIndicator={false}>
             {
               this.state.imageList.map((item, index) => this._renderCommunityImage(item, index))
             }
-            <Text style={{textAlign: 'center', marginTop: 80, marginBottom: 40, opacity: 0.5, fontSize: 12}}>再也没有啦！</Text>
+            <Text style={{ marginTop: 80, marginBottom: 40, opacity: 0.5, fontSize: 12, marginLeft: 150 }}>再也没有啦！</Text>
           </ScrollView>
           
           {/* 素材库 */}
           <View style={[{width: Dimensions.get('window').width, height: '100%'}, styles.custom_flexCenter]}>
             <MaterialPage></MaterialPage>
           </View>
+
+          
+
+
         </ScrollView>
 
 

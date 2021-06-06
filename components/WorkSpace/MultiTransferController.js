@@ -239,7 +239,7 @@ export default class MultiTransferController extends React.Component{
   _renderStyleRatioContoller(item, index) {
     const { styleIndexSelectedMulti, styleList, styleRatioList } = this.state;
     return (
-      <View ref={index}  style={{width: '100%', height: 36, marginBottom: 5, borderBottomWidth: 1, borderColor: '#eee'}}>
+      <View ref={index}  style={{width: '100%', height: 36, marginBottom: 5, borderBottomWidth: 1, borderColor: '#eee'}} key={index}>
         <Image source={{uri: styleList[styleIndexSelectedMulti[index]].url}} style={{width: 32, height: 32, borderRadius: 4, position: 'absolute'}}></Image>
         <View style={{marginLeft: 40}}>
           <Text style={{fontSize: 11}}>{ styleList[styleIndexSelectedMulti[index]].name }</Text>
@@ -345,7 +345,7 @@ export default class MultiTransferController extends React.Component{
 
         {/* 风格图列表 */}
         <View style={styles.presetStylesMode1}>
-          <ScrollView horizontal={true} style={{height: 90, marginLeft: 20, marginRight: 20}}>
+          <ScrollView horizontal={true} style={{height: 95, marginLeft: 20, marginRight: 20}}>
             {
               this.state.styleList.map((item, index) => this._renderStylePreview(item, index))
             }

@@ -26,8 +26,11 @@ export default class SettingPanel extends React.Component {
       show: false,
       panelHeight: new Animated.Value(0),
       mode: this.props.mode,
-      autoCompress: false
+      autoCompress: false,
     }
+
+    this.resizeSliderRef = React.createRef();
+    this.compressSliderRef = React.createRef();
   }
 
   in() {
@@ -83,13 +86,49 @@ export default class SettingPanel extends React.Component {
 
 
 
-  _changeContentResizeRatio(value) {
+  _changeResizeRatio(value) {
+    this.setState({
+      tempResizeRatio: value.toFixed(2).toString()
+    })
     gContentResizeRatio = value.toFixed(2);
-    this.forceUpdate();
+  }
+  _changeCompressRatio(value) {
+    this.setState({
+      tempResizeRatio: value.toFixed(2).toString()
+    })
+    gCompressRatio = value.toFixed(2);
   }
 
+  _openHighStyleNet() {
+    gStyler.useModels({styleNet: 2})
+  }
+  _closeHighStyleNet() {
+    gStyler.useModels({styleNet: 1})
+  }
+  _openHighTransformNet() {
+    gStyler.useModels({transformNet: 2})
+  }
+  _closeHighTransformNet() {
+    gStyler.useModels({transformNet: 1})
+  }
+  _openResizeImage() {
+    this.setState({
+      autoCompress: true
+    })
+  }
+  _closeResizeImage() {
+    this.setState({
+      autoCompress: false
+    })
+    // gContentResizeRatio = 1.00;
+    // gCompressRatio = 0.75;
+  }
+
+
+
+
   render() {
-    const offsetLeft = this.state.mode === 0 ? 5 : Dimensions.get('window').width - 205;
+    const offsetLeft = this.state.mode === 0 ? 5 : Dimensions.get('window').width - 225;
     return (
       <Animated.View
         style={[styles.setting_panel, {
@@ -109,6 +148,8 @@ export default class SettingPanel extends React.Component {
             <Text style={styles.setting_panel_text}>是否缩小图像尺寸</Text>
             <Switch
               margin={20}
+              open={this._openResizeImage.bind(this)}
+              close={this._closeResizeImage.bind(this)}
             />
           </View>
 
@@ -116,7 +157,7 @@ export default class SettingPanel extends React.Component {
             <Text style={styles.setting_panel_text}>缩放率：</Text>
             <Slider
               style={{ width: 144, marginLeft: -15 }}
-              value={1}
+              value={1.00}
               step={0}
               minimumValue={0.2}
               maximumValue={1}
@@ -124,9 +165,10 @@ export default class SettingPanel extends React.Component {
               minimumTrackTintColor={'rgb(124,220,254)'}
               maximumTrackTintColor={'rgba(124,220,254, 0.7)'}
               thumbTintColor={'white'}
-              onValueChange={ (value) => this._changeContentResizeRatio(value)}
+              onValueChange={(value) => this._changeResizeRatio(value)}
+              ref={this.resizeSliderRef}
             />
-            <Text style={[styles.setting_panel_text, {marginLeft: -7}]}>1.00</Text>
+            <Text style={[styles.setting_panel_text, {marginLeft: -7}]}>{parseFloat(gContentResizeRatio).toFixed(2).toString()}</Text>
           </View>
 
           <Text style={{fontSize: 9, color: '#999'}}>（影响到图片的质量）</Text>
@@ -135,7 +177,7 @@ export default class SettingPanel extends React.Component {
             <Text style={styles.setting_panel_text}>自动压缩率：</Text>
             <Slider
               style={{ width: 118, marginLeft: -15 }}
-              value={1}
+              value={0.75}
               step={0}
               minimumValue={0.2}
               maximumValue={1}
@@ -143,9 +185,10 @@ export default class SettingPanel extends React.Component {
               minimumTrackTintColor={'rgb(124,220,254)'}
               maximumTrackTintColor={'rgba(124,220,254, 0.7)'}
               thumbTintColor={'white'}
-              onValueChange={ (value) => this._changeContentResizeRatio(value)}
+              onValueChange={ (value) => this._changeCompressRatio(value)}
+              ref = {this.compressSliderRef}
             />
-            <Text style={[styles.setting_panel_text, {marginLeft: -7}]}>0.75</Text>
+            <Text style={[styles.setting_panel_text, {marginLeft: -7}]}>{parseFloat(gCompressRatio).toFixed(2).toString()}</Text>
           </View>
           
           <View style={{display: 'flex', flexDirection: 'row'}}>
@@ -153,6 +196,8 @@ export default class SettingPanel extends React.Component {
             <Text style={{color: '#aaa', fontSize: 11, top: 2, marginLeft: 10}}>快速</Text>
             <Switch
               margin={5}
+              open={this._openHighStyleNet.bind(this)}
+              close={this._closeHighStyleNet.bind(this)}
             />
             <Text style={{color: '#aaa', fontSize: 11, top: 2, marginLeft: 10}}>高质</Text>
           </View>
@@ -164,6 +209,8 @@ export default class SettingPanel extends React.Component {
             <Text style={{color: '#aaa', fontSize: 11, top: 2, marginLeft: 10}}>快速</Text>
             <Switch
               margin={5}
+              open={this._openHighTransformNet.bind(this)}
+              close={this._closeHighTransformNet.bind(this)}
             />
             <Text style={{color: '#aaa', fontSize: 11, top: 2, marginLeft: 10}}>高质</Text>
           </View>

@@ -2,42 +2,88 @@ import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-react-native';
 
 const STYLENET_URL =
-  'https://cdn.jsdelivr.net/gh/ycccccccyc/CDN@1.1/saved_model_style_js/model.json';
+  'https://cdn.jsdelivr.net/gh/ycccccccyc/INUNKNOWN_RN@2.0/assets/models/saved_model_style_js/model.json';
 const TRANSFORMNET_URL =
-  'https://cdn.jsdelivr.net/gh/ycccccccyc/CDN@1.1/saved_model_transformer_separable_js/model.json';
+  'https://cdn.jsdelivr.net/gh/ycccccccyc/INUNKNOWN_RN@2.0/assets/models/saved_model_transformer_separable_js/model.json';
 const HIGHSTYLENET_URL = 
-  ''
+  'https://cdn.jsdelivr.net/gh/ycccccccyc/INUNKNOWN_RN@2.0/assets/models/saved_model_style_inception_js/model.json';
+const HIGHTRANSFORMNET_URL =
+  'https://cdn.jsdelivr.net/gh/ycccccccyc/INUNKNOWN_RN@2.0/assets/models/saved_model_transformer_js/model.json';
 
 export class StyleTranfer {
-  constructor() {
+  constructor(props) {
     this.styleNet = null;
     this.transformNet = null;
+    this.styleNetNormal = null;
+    this.transformNetNormal = null;
+    this.styleNetHigh = null;
+    this.transformNetHigh = null;
+    this.selection = [1, 1];
   }
 
   async init() {
     console.log('initing...');
     await Promise.all([this.loadStyleModel(), this.loadTransformerModel()]);
-    console.log('models loaded.');
+    console.log('basic models loaded.');
+    this.useModels({styleNet: 1, transformNet: 1});
+    this.loadStyleModelHigh();
+    this.loadTransformerModelHigh();
     await this.warmup();
   }
 
+  useModels(obj) {
+    console.log('切换模型', obj)
+    const sType = obj.styleNet || null;
+    const tType = obj.transformNet || null;
+    if (sType) {
+      this.styleNet = sType > 1 ? this.styleNetHigh : this.styleNetNormal;
+      this.selection[0] = sType;
+      console.log('当前使用styleNet：' + sType)
+    }
+    if (tType) {
+      this.transformNet = tType > 1 ? this.transformNetHigh : this.transformNetNormal;
+      this.selection[1] = tType;
+      console.log('当前使用transformNet：' + tType)
+    }
+  }
+
+  async loadStyleModelHigh() {
+    if (this.styleNetHigh == null) {
+      console.log('loading high quality stylenet...')
+      this.styleNetHigh =
+        await tf.loadGraphModel(HIGHSTYLENET_URL)
+          .catch((err) => {console.log(err)})
+      console.log('high quality stylenet loaded');
+    }
+  }
+
   async loadStyleModel() {
-    if (this.styleNet == null) {
+    if (this.styleNetNormal == null) {
       console.log('loading stylenet...')
-      this.styleNet = 
+      this.styleNetNormal = 
         await tf.loadGraphModel(STYLENET_URL)
         .catch((err) => {console.log(err)})
       console.log('stylenet loaded');
     }
   }
 
+  async loadTransformerModelHigh() {
+    if (this.transformNetHigh == null) {
+      console.log('loading high quality transformnet...')
+      this.transformNetHigh = 
+        await tf.loadGraphModel(HIGHTRANSFORMNET_URL)
+        .catch((err) => {console.log(err)})
+      console.log('high quality transform net loaded');
+    }
+  }
+
   async loadTransformerModel() {
-    if (this.transformNet == null) {
+    if (this.transformNetNormal == null) {
       console.log('loading transformnet...')
-      this.transformNet = 
+      this.transformNetNormal = 
         await tf.loadGraphModel(TRANSFORMNET_URL)
         .catch((err) => {console.log(err)})
-      console.log('transform loaded');
+      console.log('transform net loaded');
     }
   }
 
@@ -99,7 +145,6 @@ export class StyleTranfer {
         const styleBottleneckScaled = styleBottleneck.mul(tf.scalar(styleRatio));
         console.log(typeof(styleBottleneckScaled))
         const identityBottleneckScaled = identityBottleneck.mul(tf.scalar(1.0-styleRatio));
-        console.log('addstrict函数的意义：')
         return styleBottleneckScaled.add(identityBottleneckScaled)
       })
       styleBottleneck.dispose();
@@ -117,8 +162,12 @@ export class StyleTranfer {
 
   async combine(styleList, contentImage, ratioList) {
     const start = Date.now();
-    
+
     // 程度化处理
+    const identityBottleneck = await tf.tidy(() => {
+      return this.styleNet.predict(contentImage.toFloat().div(tf.scalar(255)).expandDims());
+    })
+
     const ratioSum = ratioList.reduce((prev, next, index, ratioList) => {
       return prev + next;
     })
@@ -132,24 +181,24 @@ export class StyleTranfer {
       if (i === ratioList.length - 1) {
         castRatioList[i] = 1 - tempSum;
       } else {
-        const ratio = parseFloat((ratioList[i] / ratioSum).toFixed(2));
+        const ratio = parseFloat((ratioList[i] / ratioSum * 0.8).toFixed(1));
         castRatioList[i] = ratio
         tempSum += ratio;
       }
     }
 
     console.log('比风格例：' + castRatioList);
-    let combinedBottleneck = bottleneckList[0].mul(tf.scalar(castRatioList[0]));
-    for (let i = 1; i < bottleneckList.length; i++) {
+    let combinedBottleneck = identityBottleneck.mul(tf.scalar(0.2));
+    for (let i = 0; i < bottleneckList.length; i++) {
       const scaledBottleneck = bottleneckList[i].mul(tf.scalar(castRatioList[i]));
       combinedBottleneck.add(scaledBottleneck);
     }
 
-    const combinedStyle = await tf.tidy(() => {
-      return combinedBottleneck
-    })
-    const stylized = await this.produceStylized(contentImage, combinedStyle);
-    tf.dispose([combinedBottleneck, combinedStyle, bottleneckList]);
+    // const combinedStyle = await tf.tidy(() => {
+    //   return combinedBottleneck
+    // })
+    const stylized = await this.produceStylized(contentImage, combinedBottleneck);
+    tf.dispose([combinedBottleneck, combinedBottleneck, bottleneckList]);
     const end = Date.now();
     console.log('stylization combining scheduled', end - start);
     return stylized;

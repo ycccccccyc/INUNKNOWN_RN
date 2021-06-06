@@ -114,16 +114,13 @@ export default class WorkSpacePage extends Component {
       gotStyleList: false,
       styleList: [],
       imgFineness: 500,
-
       styleIndexSelected: 0,                    // 选择的风格图的下标
       styleIndexSelectedMuti: [],
       cameraType: Camera.Constants.Type.back,   // 相机类型(expo-camera需要用到)
       isLoading: false,                          // 逻辑处理的标志,最初表示模型等的加载
       imgTransferred: false,                     // 图像已经被成功转换
       imgTransferredMulti: false,
-
       transferMode: 0,                          // 风格化模式：一对一-多对一
-
       showChooseContentInModel: false
     };
 
@@ -277,7 +274,7 @@ export default class WorkSpacePage extends Component {
         imgTransferred: false
       })
       this.setState({selectedContentImg: true})
-      if (this.state.styleIndexSelected > 0) this._updateStylize();
+      // if (this.state.styleIndexSelected > 0) this._updateStylize();
     })
   }
   _selectContentImgByCamMulti() {
@@ -384,7 +381,7 @@ export default class WorkSpacePage extends Component {
         imgTransferred: false
       })
       this.setState({selectedContentImg: true})
-      if (this.state.styleIndexSelected > 0) this._updateStylize();
+      // if (this.state.styleIndexSelected > 0) this._updateStylize();
     })
   }
   _selectContentImgByAlbumMulti() {
@@ -434,22 +431,50 @@ export default class WorkSpacePage extends Component {
     })
   }
 
+  // 自动对图片进行压缩
+  _autoResize(width, height) {
+    let {state} = this;
+    const level = parseInt(width * height / 90000);
+    if ((gStyler.selection[0] = 1 && gStyler.selection[1] > 1) || level === 0) return false
+    switch (level) {
+      case 1:
+        gContentResizeRatio = 0.75;
+        break;
+      case 2:
+        gContentResizeRatio = 0.7;
+        break;
+      case 3:
+        gContentResizeRatio = 0.6;
+        break;
+      case 4:
+        gContentResizeRatio = 0.5;
+        break;
+    }
+    return true;
+  }
+
 
   // 更新图片
   async _updateStylize(ratio) {
     this.setState({
-      imgTransferred: false
+      imgTransferred: false,
+      isLoading: true
     })
     let {state} = this;
     if (state.isLoading) return;
     // 风格化
-    let content = await resizeContent(state.contentImg.url)
-      .catch(err => console.log('err'))
+    this._autoResize(state.contentImg.width, state.contentImg.height);
+    let content = await resizeContent(state.contentImg.url, state.contentImg.width).catch(err => console.log(err));
     content = content.base64;
     let style = await resizeStyle(state.styleList[state.styleIndexSelected].url, 400);
     style = style.base64;
 
-    let resultImage = await this.stylize(content, style, ratio).catch(err => console.log(err))
+    let resultImage;
+    try {
+      resultImage = await this.stylize(content, style, ratio).catch(err => console.log(err))
+    } catch(e) {
+      console.log(e)
+    }
     this.setState({
       displayImg: resultImage,
       imgTransferred: true
@@ -458,13 +483,14 @@ export default class WorkSpacePage extends Component {
   }
   async _updateStylizeMulti(selectedIndexList, ratioList) {
     this.setState({
-      imgTransferred: false
+      imgTransferred: false,
+      isLoading: true
     })
     let {state} = this;
     if (state.isLoading) return;
     // 多风格风格化
-    let content = await resizeContent(state.contentImgMulti.url)
-      .catch(err => console.log('err'))
+    this._autoResize(state.contentImg.width, state.contentImg.height);
+    let content = await resizeContent(state.contentImgMulti.url, state.contentImgMulti.width).catch(err => console.log(err));
     content = content.base64;
 
     let styles = [];
@@ -492,6 +518,7 @@ export default class WorkSpacePage extends Component {
       styleTensor, contentTensor, ratio);
     const stylizedImage = await tensorToImageUrl(stylizedResult);
     tf.dispose([contentTensor, styleTensor, stylizedResult]);
+    this.setState({isLoading: false},this.forceUpdate())
     return stylizedImage;
   }
   async stylizeMulti(content, styles, ratioList) {
@@ -504,6 +531,7 @@ export default class WorkSpacePage extends Component {
     const stylizedResult = await gStyler.combine(
       styleTensorList, contentTensor, ratioList);
     const stylizedImage = await tensorToImageUrl(stylizedResult);
+    this.setState({isLoading: false},this.forceUpdate())
     return stylizedImage;
   }
 
@@ -566,7 +594,7 @@ export default class WorkSpacePage extends Component {
       styleIndexSelected: styleList[index].selected ? index : 0,
       imgTransferred: false
     }, () => {
-      if (this.state.selectedContentImg) this._updateStylize();
+      // if (this.state.selectedContentImg) this._updateStylize();
     });
   }
 
@@ -755,9 +783,7 @@ export default class WorkSpacePage extends Component {
       try {
         CameraRoll.save(downloadDest).then((e1) => {
           console.log('suc',e1)
-          // Alert.alert('图片已存到相册！')
           this.saveSucceedModal.current.show(transferMode === 0 ? toDataUri(displayImg) : toDataUri(displayImgMulti));
-          // success && success()
         }).catch((e2) => {
           console.log('发生错误', e2)
         })
@@ -937,6 +963,15 @@ export default class WorkSpacePage extends Component {
         <CustomAlert
           ref={this.alertRef}></CustomAlert>
 
+        {/* 正在风格化loading */}
+        {
+          this.state.isLoading ? 
+          <View style={{position: 'absolute', top: '40%', zIndex: 999, width: '80%', height: 30, borderRadius: 10,backgroundColor: 'rgba(0, 0, 0, 0.5)', paddingTop: 4}}>
+            <Text style={{color: '#fff', textAlign: 'center'}}>正在进行风格应用...</Text>
+          </View> : null
+        }
+
+
       </View>
     )
   }
@@ -1054,7 +1089,7 @@ const styles = StyleSheet.create({
   },
   loadingIndicator: {
     position: 'absolute',
-    top: '50%',
+    top: '55%',
     left: 155,
     // flexDirection: 'row',
     // justifyContent: 'flex-end',
